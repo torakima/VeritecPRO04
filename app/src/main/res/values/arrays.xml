@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="city">
+        <item >GROUP1</item>
+        <item >GROUP2</item>
+        <item >GROUP3</item>
+        <item >GROUP4</item>
+        <item >GROUP5</item>
+        <item >GROUP6</item>
+        <item >GROUP7</item>
+    </string-array>
+</resources>
