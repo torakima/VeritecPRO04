@@ -71,6 +71,8 @@ public class ActItem {
                 }
             }
         }
+        if(sdCardFilesDirPathList.size() == 0)
+            return null;
 
         String sdPath = sdCardFilesDirPathList.get(0);
 

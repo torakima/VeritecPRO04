@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -36,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ListActivity extends AppCompatActivity implements View.OnClickListener {
+public class ListActivity extends BaseActivity implements View.OnClickListener {
 
     private static final int CAMERA = 0;
     private static final int ALBUM = 1;
@@ -58,6 +57,7 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
     ListView lv = null;
     ImageButton insertBtn = null;
     ImageButton insertFromAlbumBtn = null;
+    ImageButton settingBtn = null;
 
     Uri saveUri = null;
     String[] result = null;
@@ -81,7 +81,9 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
         insertFromAlbumBtn = (ImageButton) findViewById(R.id.ains);
         insertBtn.setOnClickListener(this);
         insertFromAlbumBtn.setOnClickListener(this);
-        Spinner s = (Spinner)findViewById(R.id.spinner);
+        settingBtn = (ImageButton) findViewById(R.id.imageButton3);
+        settingBtn.setOnClickListener(this);
+        Spinner s = (Spinner) findViewById(R.id.spinner);
 
         //外部領域使用権原取得
         PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
@@ -96,10 +98,7 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
         //List<String> pathlist = new ArrayList<>();
         extPath = ActItem.getSdCardFilesDirPathListForLollipop(context);
 
-        Log.i("外部ストレージパス:", extPath);
-
-
-
+//        Log.i("外部ストレージパス:", extPath);
 
 
         map = strMng.getAllStorageLocations();
@@ -118,7 +117,6 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
             }
         }*/
 
-        
 
         if (actItem.isExternalStorageWritable()) {
             Log.i("TEST:", "외부 메모리가 삽입 확인완료");
@@ -143,19 +141,21 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                ((TextView)parent.getChildAt(0)).setTextColor(Color.WHITE);
+                ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
 
 //                tv.setText("position : " + position + parent.getItemAtPosition(position));
                 spinnerPs = parent.getItemAtPosition(position).toString();
-                Log.i("TEST:", "Spinner Selected : " + spinnerPs );
+                Log.i("TEST:", "Spinner Selected : " + spinnerPs);
                 drawList(spinnerPs);
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         //リスト項目タッチリスナー
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 lItem = (ListItem) parent.getItemAtPosition(position);
@@ -174,7 +174,7 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
         });
 
 
-         //リスト項目長押しリスナー
+        //リスト項目長押しリスナー
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -338,14 +338,19 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
                     startActivityForResult(intent, actItem.ADD_PIC_FROM_SHOOTING_TEST);
                 }
 
-                break;
 
+                break;
+            case R.id.imageButton3:
+                startActivity(new Intent(this, SettingActivity.class));
+                break;
+            default:
+                break;
         }
     }
 
 
-    public String getPathFromUri(Uri uri){
-        Cursor cursor = getContentResolver().query(uri, null,null,null,null);
+    public String getPathFromUri(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         cursor.moveToNext();
         String path = cursor.getString(cursor.getColumnIndex("_data"));
         cursor.close();
@@ -366,13 +371,13 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
 
             // 正しい結果が得られなかった場合の処理
             if (resultCode != RESULT_OK) {
-                if(sp == null) sp = getPreferences(MODE_PRIVATE);
+                if (sp == null) sp = getPreferences(MODE_PRIVATE);
                 Uri tmpUri = Uri.parse(sp.getString("pictureUri", ""));
-                if(tmpUri != null){
+                if (tmpUri != null) {
                     ContentResolver contentResolver = getContentResolver();
-                    try{
+                    try {
                         contentResolver.delete(tmpUri, null, null);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         // 対象ファイルがない場合エラー
                     }
                     sp.edit().remove("pictureUri");
@@ -380,37 +385,37 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
 
-                // 撮影成功時の処理
-                Uri resultUri = null;
-                if(sp == null){
-                    sp = getPreferences(MODE_PRIVATE);
-                }
-                if(data != null && data.getData() != null){
-                    resultUri = data.getData();
-                }else{
-                    resultUri = Uri.parse(sp.getString("pictureUri", ""));
-                }
+            // 撮影成功時の処理
+            Uri resultUri = null;
+            if (sp == null) {
+                sp = getPreferences(MODE_PRIVATE);
+            }
+            if (data != null && data.getData() != null) {
+                resultUri = data.getData();
+            } else {
+                resultUri = Uri.parse(sp.getString("pictureUri", ""));
+            }
 
-                Intent intentEdit = new Intent(ListActivity.this, EditActivity.class);
-                intentEdit.putExtra("saveFileUri", resultUri.toString());
+            Intent intentEdit = new Intent(ListActivity.this, EditActivity.class);
+            intentEdit.putExtra("saveFileUri", resultUri.toString());
 
-                File rinziF = new File(getPathFromUri(resultUri));
+            File rinziF = new File(getPathFromUri(resultUri));
 
-                File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),  spinnerPs + "/");
-                //String targetPath = targetRoot.toString() + "/" + rinziF.getName();
+            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
+            //String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
-                String targetPath = extPath + "/" + rinziF.getName();
+            String targetPath = extPath + "/" + rinziF.getName();
 
-                Log.i("COPY PATH :", targetPath);
+            Log.i("COPY PATH :", targetPath);
 
 
             actItem.copyFile(rinziF, targetPath);
 
-                intentEdit.putExtra("savePath", targetPath);
-                intentEdit.putExtra("flg", requestCode);
-                intentEdit.putExtra("group", spinnerPs);
+            intentEdit.putExtra("savePath", targetPath);
+            intentEdit.putExtra("flg", requestCode);
+            intentEdit.putExtra("group", spinnerPs);
 
-                startActivity(intentEdit);
+            startActivity(intentEdit);
 
         }
 
@@ -422,7 +427,7 @@ public class ListActivity extends AppCompatActivity implements View.OnClickListe
 
             File rinziF = new File(getPathFromUri(uri));
 
-            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),  spinnerPs + "/");
+            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
             String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
             actItem.copyFile(rinziF, targetPath);
