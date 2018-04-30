@@ -22,10 +22,15 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.example.jun.veritecpro04.data.GroupItemObject;
+import com.example.jun.veritecpro04.data.RealmManager;
+import com.example.jun.veritecpro04.setting.SettingActivity;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -34,6 +39,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.realm.RealmList;
 
 public class ListActivity extends BaseActivity implements View.OnClickListener {
 
@@ -47,7 +54,8 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     private SharedPreferences sp;
     ActItem actItem = new ActItem();
     ExternalStorage strMng = new ExternalStorage();
-    DBHelper dbHelper = null;
+//    DBHelper dbHelper = null;
+    RealmManager realmManager = new RealmManager();
 
     String spinnerPs = "GROUP0";
 
@@ -64,6 +72,9 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
     String extPath;
 
+    String groupName;
+    Spinner groupSpinner;
+
     //String targetFolder = null;
 
     final Context context = this;
@@ -74,7 +85,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         setContentView(R.layout.activity_list);
 
         //DB Helper
-        dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
+//        dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
 
         lv = (ListView) findViewById(R.id.picList);
         insertBtn = (ImageButton) findViewById(R.id.pins);
@@ -83,7 +94,14 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         insertFromAlbumBtn.setOnClickListener(this);
         settingBtn = (ImageButton) findViewById(R.id.imageButton3);
         settingBtn.setOnClickListener(this);
-        Spinner s = (Spinner) findViewById(R.id.spinner);
+        groupSpinner = (Spinner) findViewById(R.id.spinner);
+
+        //データ取得してスピナーにセット
+        ArrayList<String> groupArray = getGroupList();
+        String[] arr = groupArray.toArray(new String[groupArray.size()]);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arr);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        groupSpinner.setAdapter(adapter);
 
         //外部領域使用権原取得
         PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
@@ -137,7 +155,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         }
 
 
-        s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        groupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
@@ -169,6 +187,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                 intent.putExtra("text", text);
                 intent.putExtra("savePath", path);
                 intent.putExtra("pk", name);
+                intent.putExtra("groupName", spinnerPs);
                 startActivity(intent);
             }
         });
@@ -204,12 +223,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             intent.putExtra("text", text);
                             intent.putExtra("savePath", path);
                             intent.putExtra("pk", name);
+                            intent.putExtra("groupName", spinnerPs);
                             startActivity(intent);
                         }
 
                         //削除
                         if (id == DELETE) {
-                            dbHelper.delete(Integer.parseInt(name));
+//                            dbHelper.delete(Integer.parseInt(name));
                             drawList(spinnerPs);
                         }
                         dialog.dismiss();
@@ -242,8 +262,9 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
 
                                     ListItem item = listAdapter2.getItem(position);
-                                    final String name = item.getName();
-                                    dbHelper.delete(Integer.parseInt(name));
+//                                    final String itemNo = item.getName();
+                                    deleteItem(item.getName());
+//                                    dbHelper.delete(Integer.parseInt(name));
                                 }
                                 drawList(spinnerPs);
                             }
@@ -266,23 +287,28 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     private void drawList(String group) {
 
         ListAdapter listAdapter = new ListAdapter();
-
-        Cursor cursor = dbHelper.getResult(group);
-        int dbcount = cursor.getCount();
-
-        result = new String[dbcount];
-
-        for (int i = 0; i < dbcount; i++) {
-            cursor.moveToNext();
-            Drawable reDraPic = null;
-            String recNum = cursor.getString(0);
-            String picGroup = cursor.getString(1);
-            String picPath = cursor.getString(2);
-            String acctxt = cursor.getString(3);
-
-            reDraPic = actItem.resizing(picPath);
-            listAdapter.addItem(reDraPic, recNum, acctxt, picPath);
+//
+//        Cursor cursor = dbHelper.getResult(group);
+//        int dbcount = cursor.getCount();
+//
+//        result = new String[dbcount];
+//
+        RealmList <GroupItemObject> list =  getItems(groupSpinner.getSelectedItem().toString());
+        for(GroupItemObject  obj : list){
+            Drawable reDraPic = actItem.resizing(obj.getImagePath());
+            listAdapter.addItem(reDraPic, obj.getItemNo(), obj.getImageText(), obj.getImagePath());
         }
+//        for (int i = 0; i < dbcount; i++) {
+//            cursor.moveToNext();
+//            Drawable reDraPic = null;
+//            String recNum = cursor.getString(0);
+//            String picGroup = cursor.getString(1);
+//            String picPath = cursor.getString(2);
+//            String acctxt = cursor.getString(3);
+//   reDraPic = actItem.resizing(picPath);
+//            listAdapter.addItem(reDraPic, recNum, acctxt, picPath);
+//
+//        }
         lv.setAdapter(listAdapter);
         listAdapter2 = listAdapter;
     }
@@ -398,7 +424,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             Intent intentEdit = new Intent(ListActivity.this, EditActivity.class);
             intentEdit.putExtra("saveFileUri", resultUri.toString());
-
+            intentEdit.putExtra("saveFileUri", groupSpinner.getSelectedItem().toString());
             File rinziF = new File(getPathFromUri(resultUri));
 
             File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
@@ -413,7 +439,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             intentEdit.putExtra("savePath", targetPath);
             intentEdit.putExtra("flg", requestCode);
-            intentEdit.putExtra("group", spinnerPs);
+            intentEdit.putExtra("groupName", spinnerPs);
 
             startActivity(intentEdit);
 
@@ -435,6 +461,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             intentEdit.putExtra("savePath", getPathFromUri(uri));
             intentEdit.putExtra("flg", requestCode);
             intentEdit.putExtra("group", spinnerPs);
+            intentEdit.putExtra("groupName", spinnerPs);
             startActivity(intentEdit);
         }
     }

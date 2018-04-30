@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     android:background="@color/colorPrimaryDark"
     tools:context="com.example.jun.veritecpro04.ListActivity"
-    tools:layout_editor_absoluteY="81dp"
-    tools:layout_editor_absoluteX="0dp">
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="81dp">
 
 
     <Spinner
@@ -16,7 +16,7 @@
         android:layout_height="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:entries="@array/city"
+        android:dropDownVerticalOffset="40dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -30,8 +30,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_begin="67dp"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="67dp" />
+        tools:layout_editor_absoluteX="67dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <ImageButton
         android:id="@+id/pins"

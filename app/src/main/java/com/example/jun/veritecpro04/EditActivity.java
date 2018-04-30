@@ -20,12 +20,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.jun.veritecpro04.data.GroupItemObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class EditActivity extends AppCompatActivity {
+public class EditActivity extends BaseActivity {
 
     private SharedPreferences sp;
 
@@ -38,6 +40,8 @@ public class EditActivity extends AppCompatActivity {
 
     String group = null;
     String picPath = null;
+
+    String GroupName = null;
 
     Uri uri = null;
     Bitmap bm = null;
@@ -55,12 +59,12 @@ public class EditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 
-        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
+//        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
 
         //ID紐づけ
-        uriView = (TextView)findViewById(R.id.uriView);
-        picView = (ImageView)findViewById(R.id.imgPreView);
-        accTxt = (EditText)findViewById(R.id.accTxt);
+        uriView = (TextView) findViewById(R.id.uriView);
+        picView = (ImageView) findViewById(R.id.imgPreView);
+        accTxt = (EditText) findViewById(R.id.accTxt);
 
         //intent処理
         Intent data = this.getIntent();
@@ -69,7 +73,7 @@ public class EditActivity extends AppCompatActivity {
         picPath = data.getExtras().getString("savePath");
         final int flg = data.getExtras().getInt("flg");
         group = data.getExtras().getString("group");
-
+        GroupName = data.getExtras().getString("groupName");
 
         /*
         String timestamp = new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -88,7 +92,7 @@ public class EditActivity extends AppCompatActivity {
         */
 
 
-        if (flg == actItem.FLG_EDIT){
+        if (flg == actItem.FLG_EDIT) {
             text = data.getExtras().getString("text");
             pk = data.getExtras().getString("pk");
             //uriView.setText(data.getExtras().getString("savePath"));
@@ -107,7 +111,7 @@ public class EditActivity extends AppCompatActivity {
         drawFromPath(picPath);
 
         //ボタン処理‐再撮影
-        findViewById(R.id.reShoot).setOnClickListener(new Button.OnClickListener(){
+        findViewById(R.id.reShoot).setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
                 long dateTaken = System.currentTimeMillis();
@@ -116,13 +120,13 @@ public class EditActivity extends AppCompatActivity {
                 ContentResolver contentResolver = getContentResolver();
                 ContentValues values = new ContentValues(5);
                 values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis()/1000);
+                values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000);
                 values.put(MediaStore.Images.Media.TITLE, filename);
                 values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
-                values.put(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
+                values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
                 Uri pictureUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-                if(sp == null) sp = getPreferences(MODE_PRIVATE);
+                if (sp == null) sp = getPreferences(MODE_PRIVATE);
                 SharedPreferences.Editor editor = sp.edit();
                 editor.putString("pictureUri", pictureUri.toString());
                 editor.commit();
@@ -155,18 +159,27 @@ public class EditActivity extends AppCompatActivity {
         });
 
 
-
         //ボタン処理‐DB入力
         findViewById(R.id.dbadd).setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (flg == actItem.FLG_EDIT) {
                     //dbHelper.update(pk, accTxt.getText().toString(), uriView.getText().toString());
-                    dbHelper.update(pk, accTxt.getText().toString(), picPath);
+
+
+//                    dbHelper.update(pk, accTxt.getText().toString(), picPath);
                     finish();
                 } else {
-                    String updateTime = time;
-                    dbHelper.insert(time, group, picPath, accTxt.getText().toString());
+//                    String updateTime = time;
+//                    dbHelper.insert(time, group, picPath, accTxt.getText().toString());
+                    GroupItemObject obj = new GroupItemObject();
+                    obj.setTime(time);
+                    obj.setItemNo(GroupName + "_sub_" + getItemSize(GroupName));
+                    obj.setGroupName(GroupName);
+                    obj.setImagePath(picPath);
+                    obj.setImageTextPath(picPath);
+                    obj.setImageText(accTxt.getText().toString());
+                    setItem(GroupName, obj);
                     finish();
                 }
             }
@@ -177,7 +190,7 @@ public class EditActivity extends AppCompatActivity {
     /**
      * Image View へ画像表示
      */
-    public void drawFromPath (String imgPath){
+    public void drawFromPath(String imgPath) {
         BitmapFactory.Options factory = new BitmapFactory.Options();
         factory.inJustDecodeBounds = true;
 
@@ -202,7 +215,7 @@ public class EditActivity extends AppCompatActivity {
 
             if (candidates.size() > 0) {
                 // 認識結果候補で一番有力なものを表示
-                insertText(accTxt,candidates.get(0));
+                insertText(accTxt, candidates.get(0));
 //                accTxt.setText(candidates.get(0));
             }
         }
@@ -214,13 +227,13 @@ public class EditActivity extends AppCompatActivity {
                 // 正しい結果が得られなかった場合の処理
                 // 撮影キャンセルなどするとこっちに来る
 
-                if(sp == null) sp = getPreferences(MODE_PRIVATE);
+                if (sp == null) sp = getPreferences(MODE_PRIVATE);
                 Uri tmpUri = Uri.parse(sp.getString("pictureUri", ""));
-                if(tmpUri != null){
+                if (tmpUri != null) {
                     ContentResolver contentResolver = getContentResolver();
-                    try{
+                    try {
                         contentResolver.delete(tmpUri, null, null);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         // 対象ファイルがない場合エラー
                     }
                     sp.edit().remove("pictureUri");
@@ -230,12 +243,12 @@ public class EditActivity extends AppCompatActivity {
 
             // 撮影成功時の処理
             Uri resultUri = null;
-            if(sp == null){
+            if (sp == null) {
                 sp = getPreferences(MODE_PRIVATE);
             }
-            if(data != null && data.getData() != null){
+            if (data != null && data.getData() != null) {
                 resultUri = data.getData();
-            }else{
+            } else {
                 resultUri = Uri.parse(sp.getString("pictureUri", ""));
             }
 
@@ -247,32 +260,29 @@ public class EditActivity extends AppCompatActivity {
         }
     }
 
-    private void speech(){
+    private void speech() {
         // 音声認識が使えるか確認する
         try {            // 音声認識の　Intent インスタンス
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-            if(lang == 0){
+            if (lang == 0) {
                 // 日本語
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.JAPAN.toString() );
-            }
-            else if(lang == 2){
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.JAPAN.toString());
+            } else if (lang == 2) {
                 // Off line mode
             }
             intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 100);
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "音声を入力" + lang);
             // インテント発行
             startActivityForResult(intent, actItem.VOICE_RECOGNITION);
-        }
-        catch (ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException e) {
 //            tv.setText("No Activity " );
         }
 
     }
 
 
-    public static void insertText(EditText view, String text)
-    {
+    public static void insertText(EditText view, String text) {
         // Math.max 는 에초에 커서가 잡혀있지않을때를 대비해서 넣음.
         int s = Math.max(view.getSelectionStart(), 0);
         int e = Math.max(view.getSelectionEnd(), 0);
@@ -280,8 +290,8 @@ public class EditActivity extends AppCompatActivity {
         view.getText().replace(Math.min(s, e), Math.max(s, e), text, 0, text.length());
     }
 
-    public String getPathFromUri(Uri uri){
-        Cursor cursor = getContentResolver().query(uri, null,null,null,null);
+    public String getPathFromUri(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         cursor.moveToNext();
         String path = cursor.getString(cursor.getColumnIndex("_data"));
         cursor.close();
