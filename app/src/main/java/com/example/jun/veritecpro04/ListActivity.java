@@ -58,8 +58,6 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     private SharedPreferences sp;
     ActItem actItem = new ActItem();
     ExternalStorage strMng = new ExternalStorage();
-    //    DBHelper dbHelper = null;
-    RealmManager realmManager = new RealmManager();
 
     String spinnerPs = "GROUP0";
 
@@ -72,14 +70,9 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     ImageButton settingBtn = null;
 
     Uri saveUri = null;
-    String[] result = null;
-
-    String groupName;
     Spinner groupSpinner;
-
-    //String targetFolder = null;
-
     final Context context = this;
+    private int SettingResultCode = 00001;
 
 
     @Override
@@ -182,7 +175,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 lItem = (ListItem) parent.getItemAtPosition(position);
                 final String name = lItem.getName();
-                final String path = lItem.getPath();
+                final String path = lItem.getImagePath();
                 final String text = lItem.getContents();
                 final String itemNo = lItem.getItemNo();
 
@@ -205,7 +198,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 lItem = (ListItem) parent.getItemAtPosition(position);
                 final String name = lItem.getName();
-                final String path = lItem.getPath();
+                final String path = lItem.getImagePath();
                 final String text = lItem.getContents();
 
                 //ポップアップ項目
@@ -268,9 +261,9 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
 
                                     ListItem item = listAdapter2.getItem(position);
-//                                    final String itemNo = item.getName();
-                                    deleteItem(item.getName());
-//                                    dbHelper.delete(Integer.parseInt(name));
+                                    deleteItem(item.getItemNo());
+                                    fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
+                                    fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
                                 }
                                 drawList(spinnerPs);
                             }
@@ -302,7 +295,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         RealmList<GroupItemObject> list = getItems(groupSpinner.getSelectedItem().toString());
         for (GroupItemObject obj : list) {
             Drawable reDraPic = actItem.resizing(obj.getImagePath());
-            listAdapter.addItem(reDraPic, obj.getItemNo(), obj.getTextContent(), obj.getImagePath(), obj.getItemNo());
+            listAdapter.addItem(reDraPic, obj.getTime(), obj.getTextContent(), obj.getImagePath(),obj.getTextPath(), obj.getItemNo());
         }
 //        for (int i = 0; i < dbcount; i++) {
 //            cursor.moveToNext();
@@ -373,7 +366,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
                 break;
             case R.id.imageButton3:
-                startActivity(new Intent(this, SettingActivity.class));
+                startActivityForResult(new Intent(this, SettingActivity.class), SettingResultCode);
                 break;
             default:
                 break;
@@ -397,7 +390,6 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
 
         if (requestCode == actItem.ADD_PIC_FROM_SHOOTING_TEST) {
 
@@ -450,9 +442,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             startActivity(intentEdit);
 
-        }
-
-        if (requestCode == actItem.ADD_PIC_FROM_ALBUM && resultCode == RESULT_OK) {
+        } else if (requestCode == actItem.ADD_PIC_FROM_ALBUM && resultCode == RESULT_OK) {
             Intent intentEdit = new Intent(ListActivity.this, EditActivity.class);
             intentEdit.putExtra("saveFileUri", data.getDataString());
             Uri uri = data.getData();
@@ -461,9 +451,6 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             File rinziF = new File(getPathFromUri(uri));
 
             File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
-            String targetPath = targetRoot.toString() + "/" + rinziF.getName();
-
-//            actItem.copyFile(rinziF, targetPath);
 
             intentEdit.putExtra("orinImagePath", rinziF);
             intentEdit.putExtra("savePath", getPathFromUri(uri));
@@ -471,6 +458,19 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             intentEdit.putExtra("group", spinnerPs);
             intentEdit.putExtra("groupName", spinnerPs);
             startActivity(intentEdit);
+        } else if (requestCode == SettingResultCode) {
+            //データ取得してスピナーにセット
+            if (groupSpinner.getAdapter() != null) {
+                groupSpinner.setAdapter(null);
+            }
+            ArrayList<String> groupArray = getGroupList();
+            String[] arr = groupArray.toArray(new String[groupArray.size()]);
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arr);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            groupSpinner.setAdapter(adapter);
+
+            drawList(spinnerPs);
+
         }
     }
 

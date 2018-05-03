@@ -57,8 +57,8 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
         final ItemObject item = mData.get(index);
         if (mData != null && mData.size() > index && mData.get(index) != null) {
 
-            viewHolder.textView.setText(item.getGroupName());
-            viewHolder.textView.addTextChangedListener(new TextWatcher() {
+            viewHolder.editView.setText(item.getGroupName());
+            viewHolder.editView.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -88,10 +88,9 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
             @Override
             public void onClick(View v) {
                 String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
-                new FileUtil().renameFolder(extPath +"/"+item.getGroupName(), extPath +"/"+msgArray.get(index));
+                new FileUtil().renameFolder(extPath + "/" + item.getGroupName(), extPath + "/" + msgArray.get(index));
                 realmManager.updateImagePath(item.getGroupName(), msgArray.get(index));
-//                mListener.onRecyclerClicked(v, i);
-
+                viewHolder.textBtn.setVisibility(View.GONE);
             }
         });
 
@@ -106,38 +105,15 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
     // ViewHolder(固有ならインナークラスでOK)
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        EditText textView;
+        EditText editView;
         Button textBtn;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            textView = (EditText) itemView.findViewById(R.id.list_item_text);
+            editView = (EditText) itemView.findViewById(R.id.list_item_text);
             textBtn = (Button) itemView.findViewById(R.id.list_item_btn);
         }
     }
-
-//    private class MyCustomEditTextListener implements TextWatcher {
-//        private int position;
-//
-//        public void updatePosition(int position) {
-//            this.position = position;
-//        }
-//
-//        @Override
-//        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-//            // no op
-//        }
-//
-//        @Override
-//        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-////            mDataset[position] = charSequence.toString();
-//        }
-//
-//        @Override
-//        public void afterTextChanged(Editable editable) {
-//            // no op
-//        }
-//    }
 
     public interface OnRecyclerListener {
 

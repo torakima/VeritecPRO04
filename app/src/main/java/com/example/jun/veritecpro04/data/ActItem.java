@@ -29,10 +29,10 @@ import java.util.List;
 
 
 public class ActItem {
-    public static final int ADD_PIC_FROM_SHOOTING_TEST = 878;
-    public static final int ADD_PIC_FROM_SHOOTING_OLD = 88;
-    public static final int ADD_PIC_FROM_ALBUM = 93;
-    public static final int VOICE_RECOGNITION = 50;
+    public static  int ADD_PIC_FROM_SHOOTING_TEST = 878;
+    public static  int ADD_PIC_FROM_SHOOTING_OLD = 88;
+    public static  int ADD_PIC_FROM_ALBUM = 93;
+    public static  int VOICE_RECOGNITION = 50;
 
     public static final int FLG_EDIT = 929;
 

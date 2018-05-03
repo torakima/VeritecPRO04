@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.example.jun.veritecpro04.BaseActivity;
 import com.example.jun.veritecpro04.R;
@@ -25,6 +26,7 @@ public class GroupRenameActivity extends BaseActivity implements GroupRecyclerAd
         setContentView(R.layout.activity_group_rename_main);
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
         realmManager = new RealmManager();
         realmManager.RealmInitilize();
         mAdapter = new GroupRecyclerAdapter(this, this, realmManager);

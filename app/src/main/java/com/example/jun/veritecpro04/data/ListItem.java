@@ -9,7 +9,8 @@ import android.graphics.drawable.Drawable;
 public class ListItem {
     private Drawable icon;
     private String name;
-    private String path;
+    private String imagePath;
+    private String textPath;
     private String contents;
     private String itemNo;
 
@@ -37,12 +38,20 @@ public class ListItem {
         this.contents = contents;
     }
 
-    public String getPath() {
-        return path;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public String getTextPath() {
+        return textPath;
+    }
+
+    public void setTextPath(String textPath) {
+        this.textPath = textPath;
     }
 
     public String getItemNo() {

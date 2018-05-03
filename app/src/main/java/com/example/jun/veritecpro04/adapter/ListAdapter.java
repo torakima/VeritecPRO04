@@ -64,14 +64,15 @@ public class ListAdapter extends BaseAdapter{
     }
 
     //データ追加のメソッド
-    public void addItem(Drawable img, String name, String contents, String path, String itemNo) {
+    public void addItem(Drawable img, String name, String contents, String imagePath, String textPath, String itemNo) {
 
         ListItem mItem = new ListItem();
 
         mItem.setIcon(img);
         mItem.setName(name);
         mItem.setContents(contents);
-        mItem.setPath(path);
+        mItem.setImagePath(imagePath);
+        mItem.setTextPath(textPath);
         mItem.setItemNo(itemNo);
         mItems.add(mItem);
     }
