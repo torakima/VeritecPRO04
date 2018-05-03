@@ -21,11 +21,15 @@ public class RealmManager {
     }
 
 
-    public void DataCheck() {
+    public boolean DataCheck() {
 
         RealmQuery<ItemObject> query = mRealm.where(ItemObject.class);
         RealmResults<ItemObject> result = query.findAll();
-        if (result.size() < 1) setData();
+        if (result.size() < 1) {
+            setData();
+            return false;
+        }
+        return true;
     }
 
     public ArrayList<String> getGroupList() {
@@ -55,11 +59,9 @@ public class RealmManager {
                     }
                 }
             });
-        } finally {
-            // getしたらcloseする
-//            mRealm.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 
     public void updateGroupName(ItemObject groupObj, String msg) {
@@ -70,14 +72,14 @@ public class RealmManager {
 
     public RealmList<GroupItemObject> getGroup(String groupName) {
         if (mRealm == null) return null;
-        else{
+        else {
             return mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst().getGroupItemObjects();
         }
     }
 
     public int getGroupItemSize(String groupName) {
         if (mRealm == null) return 0;
-        else{
+        else {
             return mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst().getGroupItemObjects().size();
         }
     }
@@ -90,15 +92,24 @@ public class RealmManager {
     }
 
     public GroupItemObject getItem(String groupName, String ItemNo) {
-        GroupItemObject results = mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst().getGroupItemObjects().where().equalTo("ItemNo", ItemNo).findFirst();
+        GroupItemObject results = mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst().getGroupItemObjects().where().equalTo("itemNo", ItemNo).findFirst();
         return results;
+    }
+
+    public void updateItem(final GroupItemObject item) {
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                mRealm.copyToRealmOrUpdate(item);
+            }
+        });
     }
 
     public void deleteItem(final String ItemNo) {
         mRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                mRealm.where(GroupItemObject.class).equalTo("ItemNo", ItemNo).findAll().deleteAllFromRealm();
+                mRealm.where(GroupItemObject.class).equalTo("itemNo", ItemNo).findAll().deleteAllFromRealm();
             }
         });
     }

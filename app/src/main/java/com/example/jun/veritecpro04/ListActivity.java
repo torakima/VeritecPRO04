@@ -31,6 +31,7 @@ import android.widget.TextView;
 import com.example.jun.veritecpro04.data.GroupItemObject;
 import com.example.jun.veritecpro04.data.RealmManager;
 import com.example.jun.veritecpro04.setting.SettingActivity;
+import com.example.jun.veritecpro04.util.FileUtil;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -39,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import io.realm.RealmList;
 
@@ -54,7 +56,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     private SharedPreferences sp;
     ActItem actItem = new ActItem();
     ExternalStorage strMng = new ExternalStorage();
-//    DBHelper dbHelper = null;
+    //    DBHelper dbHelper = null;
     RealmManager realmManager = new RealmManager();
 
     String spinnerPs = "GROUP0";
@@ -70,14 +72,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     Uri saveUri = null;
     String[] result = null;
 
-    String extPath;
-
     String groupName;
     Spinner groupSpinner;
 
     //String targetFolder = null;
 
     final Context context = this;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,12 +110,12 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onClick(Activity activity) {
             }
+
         });
 
         Map<String, File> map = new HashMap<String, File>();
 
         //List<String> pathlist = new ArrayList<>();
-        extPath = ActItem.getSdCardFilesDirPathListForLollipop(context);
 
 //        Log.i("外部ストレージパス:", extPath);
 
@@ -142,9 +143,10 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             for (int a = 0; a < 10; a++) {
                 File picStorage = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "GROUP" + a + "/");
                 Log.i("TEST:", "디렉토리생성시도 →" + picStorage.toString());
-
+                int index = a + 1;
                 if (!picStorage.exists()) {
                     picStorage.mkdirs();
+
                     Log.i("TEST:", "GROUP" + a + "디렉토리생성완료");
                 } else {
                     Log.i("TEST:", "디렉토리가 이미 존재합니다");
@@ -180,6 +182,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                 final String name = lItem.getName();
                 final String path = lItem.getPath();
                 final String text = lItem.getContents();
+                final String itemNo = lItem.getItemNo();
 
                 Intent intent = new Intent(ListActivity.this, EditActivity.class);
 
@@ -188,6 +191,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                 intent.putExtra("savePath", path);
                 intent.putExtra("pk", name);
                 intent.putExtra("groupName", spinnerPs);
+                intent.putExtra("itemNo", itemNo);
                 startActivity(intent);
             }
         });
@@ -293,10 +297,10 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 //
 //        result = new String[dbcount];
 //
-        RealmList <GroupItemObject> list =  getItems(groupSpinner.getSelectedItem().toString());
-        for(GroupItemObject  obj : list){
+        RealmList<GroupItemObject> list = getItems(groupSpinner.getSelectedItem().toString());
+        for (GroupItemObject obj : list) {
             Drawable reDraPic = actItem.resizing(obj.getImagePath());
-            listAdapter.addItem(reDraPic, obj.getItemNo(), obj.getImageText(), obj.getImagePath());
+            listAdapter.addItem(reDraPic, obj.getItemNo(), obj.getTextContent(), obj.getImagePath(), obj.getItemNo());
         }
 //        for (int i = 0; i < dbcount; i++) {
 //            cursor.moveToNext();
@@ -430,12 +434,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
             //String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
+            //todo
             String targetPath = extPath + "/" + rinziF.getName();
 
             Log.i("COPY PATH :", targetPath);
 
 
-            actItem.copyFile(rinziF, targetPath);
+//            actItem.copyFile(rinziF, targetPath);
 
             intentEdit.putExtra("savePath", targetPath);
             intentEdit.putExtra("flg", requestCode);
@@ -456,8 +461,9 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
             String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
-            actItem.copyFile(rinziF, targetPath);
+//            actItem.copyFile(rinziF, targetPath);
 
+            intentEdit.putExtra("orinImagePath", rinziF);
             intentEdit.putExtra("savePath", getPathFromUri(uri));
             intentEdit.putExtra("flg", requestCode);
             intentEdit.putExtra("group", spinnerPs);

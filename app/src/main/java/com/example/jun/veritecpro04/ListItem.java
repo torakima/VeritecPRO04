@@ -11,6 +11,7 @@ public class ListItem {
     private String name;
     private String path;
     private String contents;
+    private String itemNo;
 
     public Drawable getIcon() {
         return icon;
@@ -42,5 +43,13 @@ public class ListItem {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getItemNo() {
+        return itemNo;
+    }
+
+    public void setItemNo(String itemNo) {
+        this.itemNo = itemNo;
     }
 }

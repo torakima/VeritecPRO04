@@ -21,7 +21,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.jun.veritecpro04.data.GroupItemObject;
+import com.example.jun.veritecpro04.util.FileUtil;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,10 +50,12 @@ public class EditActivity extends BaseActivity {
 
     String text;
     String pk;
+    String itemNo;
 
-    /*API26 対応*/
     private String imagePath;
 
+    private boolean imageChange = false;
+    GroupItemObject itemObj;
     int lang = 0;
 
     @Override
@@ -62,37 +66,25 @@ public class EditActivity extends BaseActivity {
 //        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
 
         //ID紐づけ
-        uriView = (TextView) findViewById(R.id.uriView);
-        picView = (ImageView) findViewById(R.id.imgPreView);
-        accTxt = (EditText) findViewById(R.id.accTxt);
+        uriView = findViewById(R.id.uriView);
+        picView = findViewById(R.id.imgPreView);
+        accTxt = findViewById(R.id.accTxt);
 
         //intent処理
         Intent data = this.getIntent();
 
         //final String picUri = data.getExtras().getString("saveFileUri");
+        imagePath = data.getExtras().getString("orinImagePath");
         picPath = data.getExtras().getString("savePath");
         final int flg = data.getExtras().getInt("flg");
         group = data.getExtras().getString("group");
         GroupName = data.getExtras().getString("groupName");
 
-        /*
-        String timestamp = new SimpleDateFormat("yyyyMMdd").format(new Date());
-
-        File file = new File(picPath);
-        if(file.exists()){
-        }
-
-
-        String path =file.getParentFile().toString();
-        String filename = file.getName();
-
-        File fileNow = new File(path+"/GENBA/"+timestamp+".jpg");
-
-        file.renameTo(fileNow);
-        */
-
 
         if (flg == actItem.FLG_EDIT) {
+            GroupName = data.getExtras().getString("groupName");
+            itemNo = data.getExtras().getString("itemNo");
+            itemObj = getItem(GroupName, itemNo);
             text = data.getExtras().getString("text");
             pk = data.getExtras().getString("pk");
             //uriView.setText(data.getExtras().getString("savePath"));
@@ -164,21 +156,68 @@ public class EditActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (flg == actItem.FLG_EDIT) {
-                    //dbHelper.update(pk, accTxt.getText().toString(), uriView.getText().toString());
+                    //更新処理
+                    GroupItemObject newUpdateItem = new GroupItemObject();
+                    if (imageChange) {
+                        //既存ファイル削除
+                        File imageFile;
 
+                        Uri deleteImageUri = Uri.parse(itemObj.getImagePath());
+                        imageFile = new File(deleteImageUri.getPath());
+                        fileUtil.deleteFile(imageFile);
 
-//                    dbHelper.update(pk, accTxt.getText().toString(), picPath);
+                        Uri uri = Uri.parse(picPath);
+                        imageFile = new File(uri.getPath());
+                        String targetRoot = extPath + "/" + GroupName + "/";
+                        String newImagePath = targetRoot + imageFile.getName();
+                        fileUtil.copyFile(imageFile, newImagePath);
+                        //イメージ変更後、テキストファイル名も変更
+                        int idx = imageFile.getName().lastIndexOf(".");
+                        String textFileName = imageFile.getName().substring(0, idx);
+                        String newTextPath = targetRoot + textFileName + ".txt";
+                        if(itemObj.getTextPath() != null){
+                            new File(itemObj.getTextPath()).renameTo(new File(newTextPath));
+                            fileUtil.deleteFile(new File(Uri.parse(itemObj.getTextPath()).getPath())); //既存ファイル削除
+                        }
+                        newUpdateItem.setImageName(imageFile.getName());
+                        newUpdateItem.setImagePath(newImagePath);
+                        newUpdateItem.setTextPath(newTextPath);
+                    } else {
+                        newUpdateItem.setImagePath(itemObj.getImagePath());
+                        newUpdateItem.setImageName(itemObj.getImageName());
+                        newUpdateItem.setTextPath(itemObj.getTextPath());
+                    }
+                    newUpdateItem.setTime(itemObj.getTime());
+                    newUpdateItem.setGroupNo(itemObj.getGroupNo());
+                    newUpdateItem.setItemNo(itemObj.getItemNo());
+                    newUpdateItem.setTextContent(accTxt.getText().toString());
+                    fileUtil.UpdateFile(itemObj.getTextPath(), accTxt.getText().toString());
+
+                    updateItem(newUpdateItem);
                     finish();
                 } else {
-//                    String updateTime = time;
-//                    dbHelper.insert(time, group, picPath, accTxt.getText().toString());
+                    //新規作成
+                    //イメージファイルをコピー
+                    Uri uri = Uri.parse(picPath);
+                    File imageFile = new File(uri.getPath());
+                    String targetRoot = extPath + "/" + GroupName + "/" + imageFile.getName();
+                    fileUtil.copyFile(imageFile, targetRoot);
+
+                    //テキストファイル作成
+                    int idx = imageFile.getName().lastIndexOf(".");
+                    String textFileName = imageFile.getName().substring(0, idx);
+                    File textFile = fileUtil.makeFile(extPath + "/" + GroupName + "/" + "" + textFileName + ".txt");
+                    if (textFile != null) {
+                        fileUtil.writeFile(textFile, accTxt.getText().toString().getBytes());
+                    }
+
                     GroupItemObject obj = new GroupItemObject();
                     obj.setTime(time);
                     obj.setItemNo(GroupName + "_sub_" + getItemSize(GroupName));
                     obj.setGroupName(GroupName);
-                    obj.setImagePath(picPath);
-                    obj.setImageTextPath(picPath);
-                    obj.setImageText(accTxt.getText().toString());
+                    obj.setImagePath(targetRoot);
+                    obj.setTextPath(textFile.getPath());
+                    obj.setTextContent(accTxt.getText().toString());
                     setItem(GroupName, obj);
                     finish();
                 }
@@ -251,7 +290,7 @@ public class EditActivity extends BaseActivity {
             } else {
                 resultUri = Uri.parse(sp.getString("pictureUri", ""));
             }
-
+            imageChange = true;
             drawFromPath(getPathFromUri(resultUri));
             //uriView.setText(getPathFromUri(resultUri));
             picPath = getPathFromUri(resultUri);

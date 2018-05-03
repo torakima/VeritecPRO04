@@ -1,47 +1,49 @@
 package com.example.jun.veritecpro04.data;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class GroupItemObject extends RealmObject {
 
-    private int GroupNo;
+    @PrimaryKey
+    private String itemNo;
 
-    private String GroupName;
+    private int groupNo;
 
-    private String ItemNo;
+    private String groupName;
 
     private String time;
 
-    private String ImagePath;
+    private String imagePath;
 
-    private String ImageName;
+    private String imageName;
 
-    private String ImageTextPath;
+    private String textPath;
 
-    private String ImageText;
-
-    public int getGroupNo() {
-        return GroupNo;
-    }
-
-    public void setGroupNo(int groupNo) {
-        GroupNo = groupNo;
-    }
-
-    public String getGroupName() {
-        return GroupName;
-    }
-
-    public void setGroupName(String groupName) {
-        GroupName = groupName;
-    }
+    private String textContent;
 
     public String getItemNo() {
-        return ItemNo;
+        return itemNo;
     }
 
     public void setItemNo(String itemNo) {
-        ItemNo = itemNo;
+        this.itemNo = itemNo;
+    }
+
+    public int getGroupNo() {
+        return groupNo;
+    }
+
+    public void setGroupNo(int groupNo) {
+        this.groupNo = groupNo;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public String getTime() {
@@ -53,34 +55,34 @@ public class GroupItemObject extends RealmObject {
     }
 
     public String getImagePath() {
-        return ImagePath;
+        return imagePath;
     }
 
     public void setImagePath(String imagePath) {
-        ImagePath = imagePath;
+        this.imagePath = imagePath;
     }
 
     public String getImageName() {
-        return ImageName;
+        return imageName;
     }
 
     public void setImageName(String imageName) {
-        ImageName = imageName;
+        this.imageName = imageName;
     }
 
-    public String getImageTextPath() {
-        return ImageTextPath;
+    public String getTextPath() {
+        return textPath;
     }
 
-    public void setImageTextPath(String imageTextPath) {
-        ImageTextPath = imageTextPath;
+    public void setTextPath(String textPath) {
+        this.textPath = textPath;
     }
 
-    public String getImageText() {
-        return ImageText;
+    public String getTextContent() {
+        return textContent;
     }
 
-    public void setImageText(String imageText) {
-        ImageText = imageText;
+    public void setTextContent(String textContent) {
+        this.textContent = textContent;
     }
 }
