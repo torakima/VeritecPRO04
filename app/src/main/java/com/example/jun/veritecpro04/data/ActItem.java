@@ -40,8 +40,6 @@ public class ActItem {
 
     /**
      * 파일 복사
-     * @param file
-     * @param save_file
      * @return
      */
 
@@ -198,11 +196,6 @@ public class ActItem {
         }
         return bitmap;
     }
-
-
-
-
-
 }
 
 
