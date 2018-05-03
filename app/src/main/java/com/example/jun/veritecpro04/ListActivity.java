@@ -28,10 +28,13 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.jun.veritecpro04.adapter.ListAdapter;
+import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
+import com.example.jun.veritecpro04.data.ListItem;
 import com.example.jun.veritecpro04.data.RealmManager;
 import com.example.jun.veritecpro04.setting.SettingActivity;
-import com.example.jun.veritecpro04.util.FileUtil;
+import com.example.jun.veritecpro04.util.PermissionRequester;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -40,7 +43,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import io.realm.RealmList;
 

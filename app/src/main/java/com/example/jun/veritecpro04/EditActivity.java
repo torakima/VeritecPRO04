@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
-import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
@@ -20,8 +19,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
-import com.example.jun.veritecpro04.util.FileUtil;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

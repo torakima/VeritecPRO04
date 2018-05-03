@@ -1,5 +1,6 @@
 package com.example.jun.veritecpro04.util;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -322,5 +323,14 @@ public class FileUtil {
             result = false;
         }
         return result;
+    }
+
+    //directory rename
+    public void renameFolder(String oldPath, String newPath) {
+        try {
+            new File(Uri.parse(oldPath).getPath()).renameTo(new File(Uri.parse(newPath).getPath()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

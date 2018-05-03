@@ -4,13 +4,12 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
 import com.example.jun.veritecpro04.data.RealmManager;
 import com.example.jun.veritecpro04.util.FileUtil;
-import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 import io.realm.RealmList;
 

@@ -105,6 +105,25 @@ public class RealmManager {
         });
     }
 
+    public void updateImagePath(String oldGroupName, String newGroupName) {
+        if (mRealm == null) RealmInitilize();
+        String oldFolderPath = "/" + oldGroupName + "/";
+        String newFolderPath = "/" + newGroupName + "/";
+        ItemObject results = mRealm.where(ItemObject.class).equalTo("GroupName", oldGroupName).findFirst();
+        mRealm.beginTransaction();
+        RealmList<GroupItemObject> items = results.getGroupItemObjects();
+        for (GroupItemObject item : items) {
+            item.setImagePath(item.getImagePath().replace(oldFolderPath, newFolderPath));
+            item.setTextPath(item.getImagePath().replace(oldFolderPath, newFolderPath));
+            item.setGroupName(newGroupName);
+
+        }
+        ItemObject itemObject = mRealm.where(ItemObject.class).equalTo("GroupName", oldGroupName).findFirst();
+        itemObject.setGroupName(newGroupName);
+        mRealm.commitTransaction();
+    }
+
+
     public void deleteItem(final String ItemNo) {
         mRealm.executeTransaction(new Realm.Transaction() {
             @Override

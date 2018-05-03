@@ -12,8 +12,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.jun.veritecpro04.R;
+import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.ItemObject;
 import com.example.jun.veritecpro04.data.RealmManager;
+import com.example.jun.veritecpro04.util.FileUtil;
 
 import java.util.ArrayList;
 
@@ -85,7 +87,9 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
         viewHolder.textBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                realmManager.updateGroupName(item, msgArray.get(index));
+                String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
+                new FileUtil().renameFolder(extPath +"/"+item.getGroupName(), extPath +"/"+msgArray.get(index));
+                realmManager.updateImagePath(item.getGroupName(), msgArray.get(index));
 //                mListener.onRecyclerClicked(v, i);
 
             }
@@ -95,7 +99,7 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
 
     @Override
     public int getItemCount() {
-        return 10;
+        return msgArray.size();
     }
 
 
