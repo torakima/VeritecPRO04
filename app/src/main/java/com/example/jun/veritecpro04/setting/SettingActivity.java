@@ -22,5 +22,11 @@ public class SettingActivity extends BaseActivity {
                 startActivity(new Intent(SettingActivity.this, GroupRenameActivity.class));
             }
         });
+        findViewById(R.id.wifi_data).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(SettingActivity.this, WifiDataActivity.class));
+            }
+        });
     }
 }

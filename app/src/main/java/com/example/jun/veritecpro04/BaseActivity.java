@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import io.realm.RealmList;
 
 public class BaseActivity extends AppCompatActivity {
-    RealmManager realmManager = new RealmManager();
+    public RealmManager realmManager = new RealmManager();
     public String extPath;
     FileUtil fileUtil;
 

@@ -22,6 +22,8 @@ import android.widget.TextView;
 import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +70,7 @@ public class EditActivity extends BaseActivity {
         uriView = findViewById(R.id.uriView);
         picView = findViewById(R.id.imgPreView);
         accTxt = findViewById(R.id.accTxt);
+        TextView topText = (TextView) findViewById(R.id.uriView);
 
         //intent処理
         Intent data = this.getIntent();
@@ -90,6 +93,7 @@ public class EditActivity extends BaseActivity {
             accTxt.setText(text);
         }
 
+        topText.setText(GroupName);
         //日付は現在日付に固定・現在時間取得
         Long now = System.currentTimeMillis();
         Date date = new Date(now);
@@ -174,7 +178,7 @@ public class EditActivity extends BaseActivity {
                         int idx = imageFile.getName().lastIndexOf(".");
                         String textFileName = imageFile.getName().substring(0, idx);
                         String newTextPath = targetRoot + textFileName + ".txt";
-                        if(itemObj.getTextPath() != null){
+                        if (itemObj.getTextPath() != null) {
                             new File(itemObj.getTextPath()).renameTo(new File(newTextPath));
                             fileUtil.deleteFile(new File(Uri.parse(itemObj.getTextPath()).getPath())); //既存ファイル削除
                         }

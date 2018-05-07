@@ -34,4 +34,5 @@
     <color name="login_text">#FF5F5F5F</color>
     <color name="login_divider_color">#FFD1D1CE</color>
     <color name="blue_event_text">#FF0078FF</color>
+    <color name="beige">#FFF5F5DC</color>
 </resources>

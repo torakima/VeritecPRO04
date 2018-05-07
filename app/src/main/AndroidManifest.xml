@@ -45,6 +45,13 @@
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize|adjustPan" />
+
+        <activity
+            android:name=".setting.WifiDataActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize|adjustPan" />
+
     </application>
 
 </manifest>

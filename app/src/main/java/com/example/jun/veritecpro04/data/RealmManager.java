@@ -2,6 +2,8 @@ package com.example.jun.veritecpro04.data;
 
 import android.content.Context;
 
+import com.example.jun.veritecpro04.smb.config.IConfig;
+
 import java.util.ArrayList;
 
 import io.realm.Realm;
@@ -20,6 +22,9 @@ public class RealmManager {
         mRealm = Realm.getInstance(config);
     }
 
+    public void CloseReam() {
+
+    }
 
     public boolean DataCheck() {
 
@@ -129,6 +134,26 @@ public class RealmManager {
             @Override
             public void execute(Realm realm) {
                 mRealm.where(GroupItemObject.class).equalTo("itemNo", ItemNo).findAll().deleteAllFromRealm();
+            }
+        });
+    }
+
+    public WifiObject getWifiUser() {
+        RealmResults<WifiObject> list = mRealm.where(WifiObject.class).findAll();
+        if (list.size() == 0) return null;
+        else return list.last();
+
+    }
+
+    public void setWifiUser(final IConfig userInfo) {
+        final WifiObject obj = new WifiObject();
+        obj.setUser(userInfo.user);
+        obj.setPassword(userInfo.password);
+        obj.setIpAddress(userInfo.host);
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                mRealm.copyToRealmOrUpdate(obj);
             }
         });
     }

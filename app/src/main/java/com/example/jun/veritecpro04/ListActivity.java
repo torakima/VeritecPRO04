@@ -395,13 +395,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             // 正しい結果が得られなかった場合の処理
             if (resultCode != RESULT_OK) {
-                if (sp == null) sp = getPreferences(MODE_PRIVATE);
+                if(sp == null) sp = getPreferences(MODE_PRIVATE);
                 Uri tmpUri = Uri.parse(sp.getString("pictureUri", ""));
-                if (tmpUri != null) {
+                if(tmpUri != null){
                     ContentResolver contentResolver = getContentResolver();
-                    try {
+                    try{
                         contentResolver.delete(tmpUri, null, null);
-                    } catch (Exception e) {
+                    }catch (Exception e) {
                         // 対象ファイルがない場合エラー
                     }
                     sp.edit().remove("pictureUri");
@@ -411,35 +411,34 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             // 撮影成功時の処理
             Uri resultUri = null;
-            if (sp == null) {
+            if(sp == null){
                 sp = getPreferences(MODE_PRIVATE);
             }
-            if (data != null && data.getData() != null) {
+            if(data != null && data.getData() != null){
                 resultUri = data.getData();
-            } else {
+            }else{
                 resultUri = Uri.parse(sp.getString("pictureUri", ""));
             }
 
             Intent intentEdit = new Intent(ListActivity.this, EditActivity.class);
             intentEdit.putExtra("saveFileUri", resultUri.toString());
-            intentEdit.putExtra("saveFileUri", groupSpinner.getSelectedItem().toString());
+
             File rinziF = new File(getPathFromUri(resultUri));
 
-            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
+            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),  spinnerPs + "/");
             //String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
-            //todo
             String targetPath = extPath + "/" + rinziF.getName();
 
             Log.i("COPY PATH :", targetPath);
 
 
-//            actItem.copyFile(rinziF, targetPath);
-
+            actItem.copyFile(rinziF, targetPath);
+            intentEdit.putExtra("orinImagePath", rinziF);
             intentEdit.putExtra("savePath", targetPath);
             intentEdit.putExtra("flg", requestCode);
+            intentEdit.putExtra("group", spinnerPs);
             intentEdit.putExtra("groupName", spinnerPs);
-
             startActivity(intentEdit);
 
         } else if (requestCode == actItem.ADD_PIC_FROM_ALBUM && resultCode == RESULT_OK) {
