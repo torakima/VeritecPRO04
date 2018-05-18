@@ -119,7 +119,7 @@ public class RealmManager {
         RealmList<GroupItemObject> items = results.getGroupItemObjects();
         for (GroupItemObject item : items) {
             item.setImagePath(item.getImagePath().replace(oldFolderPath, newFolderPath));
-            item.setTextPath(item.getImagePath().replace(oldFolderPath, newFolderPath));
+            item.setTextPath(item.getTextPath().replace(oldFolderPath, newFolderPath));
             item.setGroupName(newGroupName);
 
         }
