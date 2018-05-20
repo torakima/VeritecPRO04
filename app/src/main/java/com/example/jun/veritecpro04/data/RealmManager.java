@@ -15,13 +15,16 @@ import io.realm.RealmResults;
 public class RealmManager {
     private Realm mRealm;
 
-    public void RealmInitilize() {
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .name("dataItem.realm")
-                .build();
-        mRealm = Realm.getInstance(config);
-    }
+//    public void RealmInitilize() {
+//        RealmConfiguration config = new RealmConfiguration.Builder()
+//                .name("dataItem.realm")
+//                .build();
+//        mRealm = Realm.getInstance(config);
+//    }
 
+    public void RealmInitilize() {
+              mRealm = Realm.getDefaultInstance();
+    }
     public void CloseReam() {
 
     }

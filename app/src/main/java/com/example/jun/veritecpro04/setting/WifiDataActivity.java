@@ -297,6 +297,11 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     if (!msg.contains("NullPointerException") && !msg.contains(" path specified")) {
                         showDialog(msg, true);
                     }
+                    if (msg.contains("SmbException")) {
+                        connectBtn.setEnabled(true);
+                        clearBtn.setEnabled(true);
+                        sendBtn.setEnabled(false);
+                    }
                 }
                 Log.d(TAG, "updateResult    " + builder);
             }

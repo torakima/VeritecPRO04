@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
+import com.example.jun.veritecpro04.util.FileUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,13 +28,11 @@ import java.util.List;
  */
 
 
-
-
 public class ActItem {
-    public static  int ADD_PIC_FROM_SHOOTING_TEST = 878;
-    public static  int ADD_PIC_FROM_SHOOTING_OLD = 88;
-    public static  int ADD_PIC_FROM_ALBUM = 93;
-    public static  int VOICE_RECOGNITION = 50;
+    public static int ADD_PIC_FROM_SHOOTING_TEST = 878;
+    public static int ADD_PIC_FROM_SHOOTING_OLD = 88;
+    public static int ADD_PIC_FROM_ALBUM = 93;
+    public static int VOICE_RECOGNITION = 50;
 
     public static final int FLG_EDIT = 929;
 
@@ -40,21 +40,26 @@ public class ActItem {
 
     /**
      * 파일 복사
+     *
      * @return
      */
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static String getSdCardFilesDirPathListForLollipop(Context context) {
         List<String> sdCardFilesDirPathList = new ArrayList<>();
-
+//        String sdPathx = Environment.getExternalStorageDirectory().getAbsolutePath();
+//        sdPathx += "/Genba";
+//        File file = new File(sdPathx);
+//        file.mkdirs();
+//        File dirt = new File(Environment.getExternalStoragePublicDirectory(Environment.getRootDirectory().getAbsolutePath()), "11111");
+//        dirt.mkdir();
         // getExternalFilesDirsはAndroid4.4から利用できるAPI。
         // filesディレクトリのリストを取得できる。
+//        File[] dirArr = context.getExternalFilesDirs(null);
         File[] dirArr = context.getExternalFilesDirs(null);
-
         for (File dir : dirArr) {
             if (dir != null) {
                 String path = dir.getAbsolutePath();
-
                 // isExternalStorageRemovableはAndroid5.0から利用できるAPI。
                 // 取り外し可能かどうか（SDカードかどうか）を判定している。
                 if (Environment.isExternalStorageRemovable(dir)) {
@@ -69,7 +74,7 @@ public class ActItem {
                 }
             }
         }
-        if(sdCardFilesDirPathList.size() == 0)
+        if (sdCardFilesDirPathList.size() == 0)
             return null;
 
         String sdPath = sdCardFilesDirPathList.get(0);
@@ -80,31 +85,32 @@ public class ActItem {
     }
 
 
-    public void copyFile(File file , String save_file){
 
-        Log.i("TEST:","원본 파일 : " + file);
-        Log.i("TEST:","타겟 파일 : " + save_file);
+        public void copyFile(File file, String save_file) {
+
+        Log.i("TEST:", "원본 파일 : " + file);
+        Log.i("TEST:", "타겟 파일 : " + save_file);
 
         //boolean result;
-        if(file!=null&&file.exists()){
+        if (file != null && file.exists()) {
             try {
                 FileInputStream fis = new FileInputStream(file);
                 FileOutputStream newfos = new FileOutputStream(save_file);
-                int readcount=0;
+                int readcount = 0;
                 byte[] buffer = new byte[1024];
-                while((readcount = fis.read(buffer,0,1024))!= -1){
-                    newfos.write(buffer,0,readcount);
+                while ((readcount = fis.read(buffer, 0, 1024)) != -1) {
+                    newfos.write(buffer, 0, readcount);
                 }
                 newfos.close();
                 fis.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("TEST:","파일복사 성공");
-        }else{
-            Log.i("TEST:","파일복사 실패");
+            Log.i("TEST:", "파일복사 성공");
+        } else {
+            Log.i("TEST:", "파일복사 실패");
         }
-     //   return result;
+        //   return result;
     }
 
 
@@ -164,17 +170,17 @@ public class ActItem {
     /**
      * イメージ回転角度決定
      */
-    public int exifOrientationToDegrees(int exifOrientation){
+    public int exifOrientationToDegrees(int exifOrientation) {
 
-        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90){
+        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
             return 90;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180){
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
             return 180;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270){
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
             return 270;
         }
         return 0;
-}
+    }
 
 
     /**

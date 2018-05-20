@@ -1,14 +1,19 @@
 package com.example.jun.veritecpro04;
 
+import android.Manifest;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
 import com.example.jun.veritecpro04.data.RealmManager;
 import com.example.jun.veritecpro04.util.FileUtil;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import io.realm.RealmList;
@@ -16,20 +21,24 @@ import io.realm.RealmList;
 public class BaseActivity extends AppCompatActivity {
     public RealmManager realmManager = new RealmManager();
     public String extPath;
+    public String rootDir = "/Genba";
     FileUtil fileUtil;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        extPath = ActItem.getSdCardFilesDirPathListForLollipop(this);
-        fileUtil = new FileUtil();
         realmManager.RealmInitilize();
-        if (!realmManager.DataCheck()) {
-            for (int a = 0; a < 10; a++) {
-                int index = a + 1;
-                fileUtil.makeDirectory(extPath + "/" + "GroupNo" + index);
-            }
-        }
+        fileUtil = new FileUtil();
+        extPath = FileUtil.getExternalStoragePath(this);
+        fileUtil.makeDirectory(extPath + rootDir);
+
+        TedPermission.with(this)
+                .setPermissionListener(permissionlistener)
+                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .check();
+
+
     }
 
 
@@ -64,4 +73,24 @@ public class BaseActivity extends AppCompatActivity {
     public void deleteItem(String itemNo) {
         realmManager.deleteItem(itemNo);
     }
+
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            ActItem.getSdCardFilesDirPathListForLollipop(getBaseContext());
+            File root = fileUtil.makeDirectory(extPath + "/Genba");
+            for (int a = 0; a < 10; a++) {
+                int index = a + 1;
+                fileUtil.makeDirectory(root + "/" + "GroupNo" + index);
+            }
+
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            finish();
+        }
+
+
+    };
 }

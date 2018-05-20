@@ -13,6 +13,7 @@ public class ListItem {
     private String textPath;
     private String contents;
     private String itemNo;
+    private String imageName;
 
     public Drawable getIcon() {
         return icon;
@@ -60,5 +61,13 @@ public class ListItem {
 
     public void setItemNo(String itemNo) {
         this.itemNo = itemNo;
+    }
+
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
     }
 }

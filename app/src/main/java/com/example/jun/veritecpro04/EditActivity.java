@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.text.format.DateFormat;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 
 import com.example.jun.veritecpro04.data.ActItem;
 import com.example.jun.veritecpro04.data.GroupItemObject;
+import com.example.jun.veritecpro04.util.FileUtil;
 
 import org.w3c.dom.Text;
 
@@ -53,7 +55,6 @@ public class EditActivity extends BaseActivity {
     String pk;
     String itemNo;
 
-    private String imagePath;
 
     private boolean imageChange = false;
     GroupItemObject itemObj;
@@ -63,7 +64,6 @@ public class EditActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
-
 //        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
 
         //ID紐づけ
@@ -76,7 +76,6 @@ public class EditActivity extends BaseActivity {
         Intent data = this.getIntent();
 
         //final String picUri = data.getExtras().getString("saveFileUri");
-        imagePath = data.getExtras().getString("orinImagePath");
         picPath = data.getExtras().getString("savePath");
         final int flg = data.getExtras().getInt("flg");
         group = data.getExtras().getString("group");
@@ -158,7 +157,11 @@ public class EditActivity extends BaseActivity {
         findViewById(R.id.dbadd).setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Date currentDate = new Date();
+                SimpleDateFormat df = new SimpleDateFormat("yy.MM.dd", Locale.JAPAN);
+                String formattedDate = df.format(currentDate);
                 if (flg == actItem.FLG_EDIT) {
+
                     //更新処理
                     GroupItemObject newUpdateItem = new GroupItemObject();
                     if (imageChange) {
@@ -168,12 +171,16 @@ public class EditActivity extends BaseActivity {
                         Uri deleteImageUri = Uri.parse(itemObj.getImagePath());
                         imageFile = new File(deleteImageUri.getPath());
                         fileUtil.deleteFile(imageFile);
+                        String targetRoot = extPath + rootDir + "/" + GroupName + "/";
 
                         Uri uri = Uri.parse(picPath);
                         imageFile = new File(uri.getPath());
-                        String targetRoot = extPath + "/" + GroupName + "/";
                         String newImagePath = targetRoot + imageFile.getName();
                         fileUtil.copyFile(imageFile, newImagePath);
+                        imageFile = new File(targetRoot, imageFile.getName());
+                        imageFile.renameTo(new File(targetRoot, formattedDate + imageFile.getName()));
+                        imageFile = new File(targetRoot, formattedDate + imageFile.getName());
+
                         //イメージ変更後、テキストファイル名も変更
                         int idx = imageFile.getName().lastIndexOf(".");
                         String textFileName = imageFile.getName().substring(0, idx);
@@ -183,7 +190,7 @@ public class EditActivity extends BaseActivity {
                             fileUtil.deleteFile(new File(Uri.parse(itemObj.getTextPath()).getPath())); //既存ファイル削除
                         }
                         newUpdateItem.setImageName(imageFile.getName());
-                        newUpdateItem.setImagePath(newImagePath);
+                        newUpdateItem.setImagePath(imageFile.getPath());
                         newUpdateItem.setTextPath(newTextPath);
                     } else {
                         newUpdateItem.setImagePath(itemObj.getImagePath());
@@ -203,13 +210,20 @@ public class EditActivity extends BaseActivity {
                     //イメージファイルをコピー
                     Uri uri = Uri.parse(picPath);
                     File imageFile = new File(uri.getPath());
-                    String targetRoot = extPath + "/" + GroupName + "/" + imageFile.getName();
+                    String path = extPath + rootDir + "/" + GroupName + "/";
+                    String targetRoot = path + imageFile.getName();
                     fileUtil.copyFile(imageFile, targetRoot);
-
+                    imageFile = new File(path, imageFile.getName());
+                    imageFile.renameTo(new File(path, formattedDate + imageFile.getName()));
+                    imageFile = new File(path, formattedDate + imageFile.getName());
                     //テキストファイル作成
                     int idx = imageFile.getName().lastIndexOf(".");
                     String textFileName = imageFile.getName().substring(0, idx);
-                    File textFile = fileUtil.makeFile(extPath + "/" + GroupName + "/" + "" + textFileName + ".txt");
+                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + "/sort.txt");
+                    if (sortFile != null) {
+                        fileUtil.writeSortFile(sortFile, imageFile.getName());
+                    }
+                    File textFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + "/" + "" + textFileName + ".txt");
                     if (textFile != null) {
                         fileUtil.writeFile(textFile, accTxt.getText().toString().getBytes());
                     }
@@ -218,7 +232,8 @@ public class EditActivity extends BaseActivity {
                     obj.setTime(time);
                     obj.setItemNo(GroupName + "_sub_" + getItemSize(GroupName));
                     obj.setGroupName(GroupName);
-                    obj.setImagePath(targetRoot);
+                    obj.setImagePath(imageFile.getPath());
+                    obj.setImageName(imageFile.getName());
                     obj.setTextPath(textFile.getPath());
                     obj.setTextContent(accTxt.getText().toString());
                     setItem(GroupName, obj);
@@ -233,20 +248,40 @@ public class EditActivity extends BaseActivity {
      * Image View へ画像表示
      */
     public void drawFromPath(String imgPath) {
-        BitmapFactory.Options factory = new BitmapFactory.Options();
-        factory.inJustDecodeBounds = true;
-
-        BitmapFactory.decodeFile(imgPath);
-        factory.inJustDecodeBounds = false;
-        factory.inPurgeable = true;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(imgPath, factory);
-
-        bm = actItem.imgRotation(bitmap, imgPath);
-
-        picView.setImageBitmap(bm);
+        picView.setImageBitmap(decodeSampledBitmapFromFile(imgPath, 600, 600));
     }
 
+    public static Bitmap decodeSampledBitmapFromFile(String filePath, int reqWidth, int reqHeight) {
+
+        // inJustDecodeBounds=true で画像のサイズをチェック
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, options);
+
+        // inSampleSize を計算
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // inSampleSize をセットしてデコード
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(filePath, options);
+    }
+
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+
+        // 画像の元サイズ
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            if (width > height) {
+                inSampleSize = Math.round((float)height / (float)reqHeight);
+            } else {
+                inSampleSize = Math.round((float)width / (float)reqWidth);
+            }
+        }
+        return inSampleSize;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -295,7 +330,6 @@ public class EditActivity extends BaseActivity {
             }
             imageChange = true;
             drawFromPath(getPathFromUri(resultUri));
-            //uriView.setText(getPathFromUri(resultUri));
             picPath = getPathFromUri(resultUri);
 
 

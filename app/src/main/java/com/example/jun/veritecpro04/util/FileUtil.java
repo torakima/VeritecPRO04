@@ -1,6 +1,9 @@
 package com.example.jun.veritecpro04.util;
 
+import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
+import android.os.storage.StorageManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -12,7 +15,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class FileUtil {
     private String TAG = "FileUtil";
@@ -37,21 +45,65 @@ public class FileUtil {
         }
     }
 
+    public static String getExternalStoragePath(Context mContext) {
+        String sdPathx = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        String setPath = "";
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Object result = getVolumeList.invoke(mStorageManager);
+            final int length = Array.getLength(result);
+//            if (length == 1) {
+            Object storageVolumeElement = Array.get(result, 0);
+            setPath = (String) getPath.invoke(storageVolumeElement);
+//            } else {
+//                for (int i = 0; i < length; i++) {
+//                    Object storageVolumeElement = Array.get(result, i);
+//                    String path = (String) getPath.invoke(storageVolumeElement);
+//                    boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+//                    if (removable) {
+//                        setPath = path;
+//                    }
+//                }
+//            }
+            return setPath;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * dir create
      *
      * @return dir
      */
     public File makeDirectory(String dir_path) {
-        File dir = new File(dir_path);
-        if (!dir.exists()) {
-            dir.mkdirs();
-            Log.i(TAG, "!dir.create");
-        } else {
-            Log.i(TAG, "dir.exists");
+        try {
+            File dir = new File(dir_path);
+            if (!dir.exists()) {
+                dir.mkdirs();
+                Log.i(TAG, "!dir create " + dir_path);
+            } else {
+                Log.i(TAG, "dir.exists");
+            }
+            return dir;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
 
-        return dir;
     }
 
     /**
@@ -72,7 +124,7 @@ public class FileUtil {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    Log.i(TAG, "파일생성 여부 = " + isSuccess);
+                    Log.i(TAG, "result = " + isSuccess);
                 }
             } else {
                 Log.i(TAG, "file.exists");
@@ -92,7 +144,7 @@ public class FileUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                Log.i(TAG, "파일생성 여부 = " + isSuccess);
+                Log.i(TAG, "result= " + isSuccess);
             }
         } else {
             Log.i(TAG, "file.exists");
@@ -189,7 +241,35 @@ public class FileUtil {
         return result;
     }
 
-    // 파일 생성
+    /**
+     * sortファイルに内容書き
+     *
+     * @param file
+     * @param file_content
+     * @return
+     */
+    public boolean writeSortFile(File file, String file_content) {
+        boolean result;
+        byte[] writeFIle;
+        FileWriter writer = null;
+        boolean isSeporator = false;
+        String sortContent = ReadFileText(file);
+        if (!sortContent.isEmpty()) {
+            isSeporator = true;
+        }
+        try {
+            writer = new FileWriter(file, true);
+            if (isSeporator) writer.write(System.lineSeparator());
+            writer.write(file_content);
+            writer.flush();
+            writer.close();
+            result = true;
+        } catch (IOException i) {
+            result = false;
+        }
+        return result;
+    }
+
     private void CreateFile(String FilePath) {
         try {
             System.out.println(FilePath);
@@ -207,8 +287,67 @@ public class FileUtil {
         }
     }
 
+    private void CreateUpdateSorttxt(String FilePath) {
+        try {
+            int nLast = FilePath.lastIndexOf("\\");
+            String strDir = FilePath.substring(0, nLast);
+            String strFile = FilePath.substring(nLast + 1, FilePath.length());
 
-    // 파일 테스트 읽기
+            File dirFolder = new File(strDir);
+            dirFolder.mkdirs();
+            File f = new File(dirFolder, strFile);
+            f.createNewFile();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+
+    public void removeLineFromFile(String file, String lineToRemove) {
+        try {
+            File inFile = new File(file);
+            if (!inFile.isFile()) {
+                System.out.println("Parameter is not an existing file");
+                return;
+            }
+
+            //Construct the new file that will later be renamed to the original filename.
+            File tempFile = new File(inFile.getAbsolutePath() + ".tmp");
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+            String line = null;
+            //Read from the original file and write to the new
+            //unless content matches data to be removed.
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().equals(lineToRemove)) {
+                    pw.println(line);
+                    pw.flush();
+                }
+            }
+            pw.close();
+            br.close();
+
+            //Delete the original file
+            if (!inFile.delete()) {
+                System.out.println("Could not delete file");
+                return;
+            }
+
+            //Rename the new file to the filename the original file had.
+            if (!tempFile.renameTo(inFile))
+                System.out.println("Could not rename file");
+
+        }
+        catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
     public String ReadFileText(File file) {
         String strText = "";
         int nBuffer;
@@ -244,31 +383,6 @@ public class FileUtil {
             System.out.println(ex.getMessage());
         }
     }
-
-
-//    public boolean writeFile(File file , String file_content){
-//        boolean result;
-//        BufferedReader fos;
-//        if(file!=null&&file.exists()&&file_content!=null){
-//            try {
-//                fos = new BufferedReader(file);
-//                try {
-//                    fos.write(file_content);
-//                    fos.flush();
-//                    fos.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//            result = true;
-//        }else{
-//            result = false;
-//        }
-//        return result;
-//    }
-
 
     /**
      * ファイル読み
@@ -313,9 +427,7 @@ public class FileUtil {
                 }
                 newfos.close();
                 fis.close();
-                Log.d(TAG, "이미지 파일 카피 성공");
             } catch (Exception e) {
-                Log.d(TAG, "이미지 파일 카피 실패");
                 e.printStackTrace();
             }
             result = true;

@@ -79,10 +79,6 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-
-        //DB Helper
-//        dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
-
         lv = (ListView) findViewById(R.id.picList);
         insertBtn = (ImageButton) findViewById(R.id.pins);
         insertFromAlbumBtn = (ImageButton) findViewById(R.id.ains);
@@ -91,7 +87,12 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         settingBtn = (ImageButton) findViewById(R.id.imageButton3);
         settingBtn.setOnClickListener(this);
         groupSpinner = (Spinner) findViewById(R.id.spinner);
+        realmManager.DataCheck();
+        setView();
+    }
 
+
+    private void setView() {
         //データ取得してスピナーにセット
         ArrayList<String> groupArray = getGroupList();
         String[] arr = groupArray.toArray(new String[groupArray.size()]);
@@ -99,66 +100,12 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         groupSpinner.setAdapter(adapter);
 
-        //外部領域使用権原取得
-        PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
-        requester.create().request(Manifest.permission.WRITE_EXTERNAL_STORAGE, 20000, new PermissionRequester.OnClickDenyButtonListener() {
-            @Override
-            public void onClick(Activity activity) {
-            }
-
-        });
-
-        Map<String, File> map = new HashMap<String, File>();
-
-        //List<String> pathlist = new ArrayList<>();
-
-//        Log.i("外部ストレージパス:", extPath);
-
-
-        map = strMng.getAllStorageLocations();
-
-/*        File path = map.get(strMng.SD_CARD);
-        if (path != null){
-            File newStorage = new File(path, "GROUP12/");
-                Log.i("TEST:", "TEST디렉토리생성시도:" + newStorage.toString());
-
-            if (!newStorage.exists()) {
-                newStorage.mkdirs();
-
-                Log.i("TEST:", "GROUP TEST 디렉토리생성완료");
-            } else {
-                Log.i("TEST:", "GROUP TEST 디렉토리가 이미 존재합니다");
-            }
-        }*/
-
-
-        if (actItem.isExternalStorageWritable()) {
-            Log.i("TEST:", "외부 메모리가 삽입 확인완료");
-            //外部ストレージ修正：現在開発中
-            for (int a = 0; a < 10; a++) {
-                File picStorage = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "GROUP" + a + "/");
-                Log.i("TEST:", "디렉토리생성시도 →" + picStorage.toString());
-                int index = a + 1;
-                if (!picStorage.exists()) {
-                    picStorage.mkdirs();
-
-                    Log.i("TEST:", "GROUP" + a + "디렉토리생성완료");
-                } else {
-                    Log.i("TEST:", "디렉토리가 이미 존재합니다");
-                }
-
-                //targetFolder = picStorage.toString() + "/";
-            }
-        }
-
-
         groupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
                 ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
 
-//                tv.setText("position : " + position + parent.getItemAtPosition(position));
                 spinnerPs = parent.getItemAtPosition(position).toString();
                 Log.i("TEST:", "Spinner Selected : " + spinnerPs);
                 drawList(spinnerPs);
@@ -245,33 +192,32 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         drawList(spinnerPs);
 
         //リスト項目スワイプリスナー
-        SwipeDismissListViewTouchListener touchListener =
-                new SwipeDismissListViewTouchListener(
-                        lv,
-                        new SwipeDismissListViewTouchListener.DismissCallbacks() {
-                            @Override
-                            public boolean canDismiss(int position) {
-                                return true;
-                            }
+        SwipeDismissListViewTouchListener touchListener = new SwipeDismissListViewTouchListener(
+                lv,
+                new SwipeDismissListViewTouchListener.DismissCallbacks() {
+                    @Override
+                    public boolean canDismiss(int position) {
+                        return true;
+                    }
 
-                            @Override
-                            public void onDismiss(ListView listView, int[] reverseSortedPositions) {
+                    @Override
+                    public void onDismiss(ListView listView, int[] reverseSortedPositions) {
 
-                                for (int position : reverseSortedPositions) {
+                        for (int position : reverseSortedPositions) {
 
 
-                                    ListItem item = listAdapter2.getItem(position);
-                                    deleteItem(item.getItemNo());
-                                    fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
-                                    fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
-                                }
-                                drawList(spinnerPs);
-                            }
-                        });
+                            ListItem item = listAdapter2.getItem(position);
+                            deleteItem(item.getItemNo());
+                            fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
+                            fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
+                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
+                        }
+                        drawList(spinnerPs);
+                    }
+                });
         lv.setOnTouchListener(touchListener);
         lv.setOnScrollListener(touchListener.makeScrollListener());
     }
-
 
     @Override
     protected void onResume() {
@@ -279,35 +225,18 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         super.onResume();
     }
 
-
     /**
      * リスト項目更新メソッド
      */
     private void drawList(String group) {
 
         ListAdapter listAdapter = new ListAdapter();
-//
-//        Cursor cursor = dbHelper.getResult(group);
-//        int dbcount = cursor.getCount();
-//
-//        result = new String[dbcount];
-//
+        Object test = groupSpinner.getSelectedItem();
         RealmList<GroupItemObject> list = getItems(groupSpinner.getSelectedItem().toString());
         for (GroupItemObject obj : list) {
             Drawable reDraPic = actItem.resizing(obj.getImagePath());
-            listAdapter.addItem(reDraPic, obj.getTime(), obj.getTextContent(), obj.getImagePath(),obj.getTextPath(), obj.getItemNo());
+            listAdapter.addItem(reDraPic, obj.getTime(), obj.getTextContent(), obj.getImagePath(), obj.getTextPath(), obj.getItemNo(), obj.getImageName());
         }
-//        for (int i = 0; i < dbcount; i++) {
-//            cursor.moveToNext();
-//            Drawable reDraPic = null;
-//            String recNum = cursor.getString(0);
-//            String picGroup = cursor.getString(1);
-//            String picPath = cursor.getString(2);
-//            String acctxt = cursor.getString(3);
-//   reDraPic = actItem.resizing(picPath);
-//            listAdapter.addItem(reDraPic, recNum, acctxt, picPath);
-//
-//        }
         lv.setAdapter(listAdapter);
         listAdapter2 = listAdapter;
     }
@@ -395,13 +324,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             // 正しい結果が得られなかった場合の処理
             if (resultCode != RESULT_OK) {
-                if(sp == null) sp = getPreferences(MODE_PRIVATE);
+                if (sp == null) sp = getPreferences(MODE_PRIVATE);
                 Uri tmpUri = Uri.parse(sp.getString("pictureUri", ""));
-                if(tmpUri != null){
+                if (tmpUri != null) {
                     ContentResolver contentResolver = getContentResolver();
-                    try{
+                    try {
                         contentResolver.delete(tmpUri, null, null);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         // 対象ファイルがない場合エラー
                     }
                     sp.edit().remove("pictureUri");
@@ -411,12 +340,12 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             // 撮影成功時の処理
             Uri resultUri = null;
-            if(sp == null){
+            if (sp == null) {
                 sp = getPreferences(MODE_PRIVATE);
             }
-            if(data != null && data.getData() != null){
+            if (data != null && data.getData() != null) {
                 resultUri = data.getData();
-            }else{
+            } else {
                 resultUri = Uri.parse(sp.getString("pictureUri", ""));
             }
 
@@ -425,7 +354,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
             File rinziF = new File(getPathFromUri(resultUri));
 
-            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),  spinnerPs + "/");
+            File targetRoot = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), spinnerPs + "/");
             //String targetPath = targetRoot.toString() + "/" + rinziF.getName();
 
             String targetPath = extPath + "/" + rinziF.getName();
@@ -481,52 +410,15 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
      * カメラアプリが設置されているか確認
      */
     private boolean isExistsCameraApplication() {
-        // Android의 모든 Application을 얻어온다
         PackageManager packageManager = getPackageManager();
 
         // Camera Application
         Intent cameraApp = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        // MediaStore.ACTION_IMAGE_CAPTURE의 Intent를 처리할 수 있는 Application 정보 가져옴
         List<ResolveInfo> cameraApps = packageManager.queryIntentActivities(cameraApp, PackageManager.MATCH_DEFAULT_ONLY);
 
         return cameraApps.size() > 0;
     }
 
-
-    /**
-     * イメージファイル生成
-     */
-    private File savePictureFile() {
-
-        // 외부 저장소 쓰기 권한 받기
-        PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
-
-        int result = requester.create().request(Manifest.permission.WRITE_EXTERNAL_STORAGE, 20000, new PermissionRequester.OnClickDenyButtonListener() {
-            @Override
-            public void onClick(Activity activity) {
-            }
-        });
-
-        // 권한 사용 거부를 누르지 않았을 때
-        if (result == PermissionRequester.ALREADY_GRANTED || result == PermissionRequester.REQUEST_PERMISSION) {
-            if (result == 1 || result == -1) {
-                saveUri = null;
-
-                // 사진 파일의 이름 설정
-
-
-                String externalStorage = getExternalFilesDir(null).getAbsolutePath();
-                //ensureImageExistence(externalStorage, IMAGE_FILE_NAME);
-                String timestamp = new SimpleDateFormat("yyyyMMdd HHmmss").format(new Date());
-                String fileName = "IMG_" + timestamp;
-
-                Uri externalFileUri = Uri.fromFile(new File(externalStorage, fileName));
-
-            }
-            return null;
-        }
-        return null;
-    }
 
 }

@@ -27,7 +27,7 @@
             android:id="@+id/ip_address_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="ip address(192.168.xxx.xxx)"
+            android:hint="マシン名 又は、ip address(192.168.xxx.xxx)"
             android:lines="1"
             android:textColor="@color/white"
             android:textColorHint="@color/white"

@@ -86,7 +86,8 @@ public class WifiGroupRecyclerAdapter extends RecyclerView.Adapter<WifiGroupRecy
         viewHolder.textBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
+//                String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
+                String extPath = FileUtil.getExternalStoragePath(mContext);
                 new FileUtil().renameFolder(extPath + "/" + item.getGroupName(), extPath + "/" + msgArray.get(index));
                 realmManager.updateImagePath(item.getGroupName(), msgArray.get(index));
                 viewHolder.textBtn.setVisibility(View.GONE);
