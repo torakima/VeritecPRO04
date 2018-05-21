@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.jun.veritecpro04">
+    package="com.genba.jun.veritecpro04">
 
     <!--カメラの使用を使用者に知らす-->
     <uses-feature android:name="android.hardware.camera2" />
@@ -34,8 +34,8 @@
         <activity
             android:name=".EditActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".setting.SettingActivity"
@@ -53,6 +53,9 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize|adjustPan" />
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="3097d750b2ce634d8cb6a30873a36c00d38c7963" />
     </application>
 
 </manifest>
