@@ -3,12 +3,15 @@ package com.genba.jun.veritecpro04.data;
 import android.content.Context;
 
 import com.genba.jun.veritecpro04.smb.config.IConfig;
+import com.genba.jun.veritecpro04.util.FileUtil;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmList;
+import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
@@ -23,8 +26,9 @@ public class RealmManager {
 //    }
 
     public void RealmInitilize() {
-              mRealm = Realm.getDefaultInstance();
+        mRealm = Realm.getDefaultInstance();
     }
+
     public void CloseReam() {
 
     }
@@ -65,6 +69,11 @@ public class RealmManager {
                         // プライマリーキーが同じならアップデート
                         realm.copyToRealmOrUpdate(group);
                     }
+
+                    SettingObject settingObject = new SettingObject();
+                    settingObject.setItemNo(0);
+                    settingObject.setSaveDirection(new FileUtil().isExternalMemoryAvailable());
+                    realm.copyToRealmOrUpdate(settingObject);
                 }
             });
         } catch (Exception e) {
@@ -82,6 +91,13 @@ public class RealmManager {
         if (mRealm == null) return null;
         else {
             return mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst().getGroupItemObjects();
+        }
+    }
+
+    public RealmResults<ItemObject> getAllData() {
+        if (mRealm == null) return null;
+        else {
+            return mRealm.where(ItemObject.class).findAll();
         }
     }
 
@@ -145,7 +161,6 @@ public class RealmManager {
         RealmResults<WifiObject> list = mRealm.where(WifiObject.class).findAll();
         if (list.size() == 0) return null;
         else return list.last();
-
     }
 
     public void setWifiUser(final IConfig userInfo) {
@@ -159,5 +174,16 @@ public class RealmManager {
                 mRealm.copyToRealmOrUpdate(obj);
             }
         });
+    }
+
+    public SettingObject getSetting() {
+        return mRealm.where(SettingObject.class).findFirst();
+    }
+
+    public void setSetting(boolean save) {
+        SettingObject obj = mRealm.where(SettingObject.class).findFirst();
+        mRealm.beginTransaction();
+        obj.setSaveDirection(save);
+        mRealm.commitTransaction();
     }
 }

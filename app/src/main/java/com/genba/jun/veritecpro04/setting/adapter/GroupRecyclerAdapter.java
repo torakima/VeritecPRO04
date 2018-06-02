@@ -28,6 +28,7 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
     private OnRecyclerListener mListener;
     RealmManager realmManager = null;
     ArrayList<String> msgArray = new ArrayList<>();
+    public String rootDir = "/Genba";
 
 
     public GroupRecyclerAdapter(Context context, OnRecyclerListener listener, RealmManager realmManager) {
@@ -89,7 +90,7 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
             public void onClick(View v) {
 //                String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
                 String extPath = FileUtil.getExternalStoragePath(mContext);
-                new FileUtil().renameFolder(extPath + "/" + item.getGroupName(), extPath + "/" + msgArray.get(index));
+                new FileUtil().renameFolder(extPath + rootDir + "/" + item.getGroupName(), extPath + rootDir + "/" + msgArray.get(index));
                 realmManager.updateImagePath(item.getGroupName(), msgArray.get(index));
                 viewHolder.textBtn.setVisibility(View.GONE);
             }

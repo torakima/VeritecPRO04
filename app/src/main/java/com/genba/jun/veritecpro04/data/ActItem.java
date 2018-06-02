@@ -47,15 +47,6 @@ public class ActItem {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static String getSdCardFilesDirPathListForLollipop(Context context) {
         List<String> sdCardFilesDirPathList = new ArrayList<>();
-//        String sdPathx = Environment.getExternalStorageDirectory().getAbsolutePath();
-//        sdPathx += "/Genba";
-//        File file = new File(sdPathx);
-//        file.mkdirs();
-//        File dirt = new File(Environment.getExternalStoragePublicDirectory(Environment.getRootDirectory().getAbsolutePath()), "11111");
-//        dirt.mkdir();
-        // getExternalFilesDirsはAndroid4.4から利用できるAPI。
-        // filesディレクトリのリストを取得できる。
-//        File[] dirArr = context.getExternalFilesDirs(null);
         File[] dirArr = context.getExternalFilesDirs(null);
         for (File dir : dirArr) {
             if (dir != null) {

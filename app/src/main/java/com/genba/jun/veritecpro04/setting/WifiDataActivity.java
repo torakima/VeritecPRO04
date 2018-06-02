@@ -38,6 +38,7 @@ import com.genba.jun.veritecpro04.setting.adapter.WifiGroupRecyclerAdapter;
 import com.genba.jun.veritecpro04.smb.config.IConfig;
 import com.genba.jun.veritecpro04.smb.config.SambaUtil;
 import com.genba.jun.veritecpro04.smb.jcifs.smb.SmbFile;
+import com.genba.jun.veritecpro04.util.FileUtil;
 
 import java.util.ArrayList;
 
@@ -60,6 +61,9 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     public RealmManager realmManager = new RealmManager();
     private Button connectBtn, clearBtn, sendBtn;
     private EditText ipView, userView, passwordView;
+    public String extPath;
+    public String rootDir = "/Genba";
+    int groupPosiotion = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,6 +71,8 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         setContentView(R.layout.activity_data_trans_main);
         mGroup = (RadioGroup) findViewById(R.id.group_list);
         inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) groupPosiotion = getIntent().getExtras().getInt("position");
         folerListView = (ListView) findViewById(R.id.folder_list);
         realmManager.RealmInitilize();
         setGroupList();
@@ -74,8 +80,9 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     }
 
     private void init() {
-        WifiObject userInfo = realmManager.getWifiUser();
+        extPath = FileUtil.getExternalStoragePath(this);
 
+        WifiObject userInfo = realmManager.getWifiUser();
         sendBtn = (Button) findViewById(R.id.send_btn);
         connectBtn = (Button) findViewById(R.id.connect_btn);
         clearBtn = (Button) findViewById(R.id.clear_btn);
@@ -115,6 +122,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                 for (String item : itemsPath) {
                     upload(item, folderName);
                 }
+                upload(extPath + rootDir + "/" + folderName + "/sort.txt", folderName);
                 break;
             case R.id.connect_btn:
                 String ipAdd = ipView.getText().toString();
@@ -150,6 +158,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.gravity = Gravity.CENTER_VERTICAL;
             rad.setText(mData.get(i).getGroupName());
+
             mGroup.addView(rad);
             mGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                 public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -160,6 +169,9 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     }
                 }
             });
+            if (groupPosiotion == i) {
+                rad.setChecked(true);
+            }
         }
     }
 

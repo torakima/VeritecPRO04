@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.genba.jun.veritecpro04.data.ActItem;
 import com.genba.jun.veritecpro04.data.GroupItemObject;
@@ -84,6 +85,7 @@ public class EditActivity extends BaseActivity {
         group = data.getExtras().getString("group");
         GroupName = data.getExtras().getString("groupName");
 
+        setExtRoot();
 
         if (flg == actItem.FLG_EDIT) {
             GroupName = data.getExtras().getString("groupName");
@@ -187,10 +189,11 @@ public class EditActivity extends BaseActivity {
                         String newTextPath = targetRoot + textFileName + ".txt";
                         if (itemObj.getTextPath() != null) {
                             new File(itemObj.getTextPath()).renameTo(new File(newTextPath));
-                            fileUtil.deleteFile(new File(Uri.parse(itemObj.getTextPath()).getPath())); //既存ファイル削除
+                            new File(itemObj.getTextPath()).delete(); //既存ファイル削除
                         }
                         newUpdateItem.setImageName(imageFile.getName());
                         newUpdateItem.setImagePath(imageFile.getPath());
+                        newUpdateItem.setImageSize(imageFile.length());
                         newUpdateItem.setTextPath(newTextPath);
                     } else {
                         newUpdateItem.setImagePath(itemObj.getImagePath());
@@ -219,7 +222,8 @@ public class EditActivity extends BaseActivity {
                     //テキストファイル作成
                     int idx = imageFile.getName().lastIndexOf(".");
                     String textFileName = imageFile.getName().substring(0, idx);
-                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + "/sort.txt");
+                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + sortTxt);
+
                     if (sortFile != null) {
                         fileUtil.writeSortFile(sortFile, imageFile.getName());
                     }
@@ -234,6 +238,7 @@ public class EditActivity extends BaseActivity {
                     obj.setGroupName(GroupName);
                     obj.setImagePath(imageFile.getPath());
                     obj.setImageName(imageFile.getName());
+                    obj.setImageSize(imageFile.length());
                     obj.setTextPath(textFile.getPath());
                     obj.setTextContent(accTxt.getText().toString());
                     setItem(GroupName, obj);
@@ -249,16 +254,23 @@ public class EditActivity extends BaseActivity {
      */
     public void drawFromPath(String imgPath) {
         ExifInterface exif = null;
+        Bitmap bitmap = null;
         try {
             exif = new ExifInterface(imgPath);
+
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+
+            bitmap = decodeSampledBitmapFromFile(imgPath, 700, 700);
+            bitmap = rotateBitmap(bitmap, orientation);
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "写真時報を取得できませんでした。", Toast.LENGTH_SHORT).show();
+            finish();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "写真時報を取得できませんでした。", Toast.LENGTH_SHORT).show();
+            finish();
         }
-        int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_UNDEFINED);
-
-        Bitmap bitmap = decodeSampledBitmapFromFile(imgPath, 700, 700);
-        bitmap = rotateBitmap(bitmap, orientation);
         picView.setImageBitmap(bitmap);
     }
 
@@ -286,9 +298,9 @@ public class EditActivity extends BaseActivity {
 
         if (height > reqHeight || width > reqWidth) {
             if (width > height) {
-                inSampleSize = Math.round((float)height / (float)reqHeight);
+                inSampleSize = Math.round((float) height / (float) reqHeight);
             } else {
-                inSampleSize = Math.round((float)width / (float)reqWidth);
+                inSampleSize = Math.round((float) width / (float) reqWidth);
             }
         }
         return inSampleSize;
@@ -331,12 +343,12 @@ public class EditActivity extends BaseActivity {
             Bitmap bmRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
             bitmap.recycle();
             return bmRotated;
-        }
-        catch (OutOfMemoryError e) {
+        } catch (OutOfMemoryError e) {
             e.printStackTrace();
             return null;
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

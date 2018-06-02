@@ -18,6 +18,8 @@ public class GroupItemObject extends RealmObject {
 
     private String imageName;
 
+    private Long imageSize;
+
     private String textPath;
 
     private String textContent;
@@ -72,6 +74,14 @@ public class GroupItemObject extends RealmObject {
 
     public String getTextPath() {
         return textPath;
+    }
+
+    public Long getImageSize() {
+        return imageSize;
+    }
+
+    public void setImageSize(Long imageSize) {
+        this.imageSize = imageSize;
     }
 
     public void setTextPath(String textPath) {

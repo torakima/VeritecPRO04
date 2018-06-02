@@ -3,6 +3,7 @@ package com.genba.jun.veritecpro04.util;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.StatFs;
 import android.os.storage.StorageManager;
 import android.util.Log;
 
@@ -21,6 +22,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
 
 public class FileUtil {
     private String TAG = "FileUtil";
@@ -84,6 +86,28 @@ public class FileUtil {
         return null;
     }
 
+
+    /**
+     * dir delete
+     */
+    public void setDirEmpty(String path) {
+        File dir = new File(path);
+        File[] childFileList = dir.listFiles();
+        if (dir.exists()) {
+            for (File childFile : childFileList) {
+                if (childFile.isDirectory()) {
+                    setDirEmpty(childFile.getAbsolutePath());
+                } else {
+                    childFile.delete();
+                    Log.i(TAG, "delete File " + childFile.getName());
+
+                }
+            }
+            dir.delete();
+        }
+    }
+
+
     /**
      * dir create
      *
@@ -92,12 +116,8 @@ public class FileUtil {
     public File makeDirectory(String dir_path) {
         try {
             File dir = new File(dir_path);
-            if (!dir.exists()) {
-                dir.mkdirs();
-                Log.i(TAG, "!dir create " + dir_path);
-            } else {
-                Log.i(TAG, "dir.exists");
-            }
+            dir.mkdirs();
+            Log.i(TAG, "dir create " + dir_path);
             return dir;
         } catch (Exception e) {
             e.printStackTrace();
@@ -320,7 +340,7 @@ public class FileUtil {
             //Read from the original file and write to the new
             //unless content matches data to be removed.
             while ((line = br.readLine()) != null) {
-                if (!line.trim().equals(lineToRemove)) {
+                if (!line.trim().contains(lineToRemove)) {
                     pw.println(line);
                     pw.flush();
                 }
@@ -338,11 +358,9 @@ public class FileUtil {
             if (!tempFile.renameTo(inFile))
                 System.out.println("Could not rename file");
 
-        }
-        catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException ex) {
             ex.printStackTrace();
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
@@ -429,8 +447,9 @@ public class FileUtil {
                 fis.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                result = true;
             }
-            result = true;
         } else {
             result = false;
         }
@@ -440,9 +459,69 @@ public class FileUtil {
     //directory rename
     public void renameFolder(String oldPath, String newPath) {
         try {
-            new File(Uri.parse(oldPath).getPath()).renameTo(new File(Uri.parse(newPath).getPath()));
+            File filePre = new File(oldPath);
+            File fileNow = new File(newPath);
+            fileNow.mkdir();
+            File[] childFileList = filePre.listFiles();
+            for (File childFile : childFileList) {
+                new File(oldPath + "/" + childFile.getName()).renameTo(new File(newPath + "/" + childFile.getName()));
+                childFile.delete();
+            }
+            filePre.delete();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isExternalMemoryAvailable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+    }
+
+    public Long checkInternalStorageAllMemory() {
+        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
+        long blockSize = stat.getBlockSizeLong();
+        long totalBlocks = stat.getBlockCountLong();
+
+        return blockSize * totalBlocks;
+    }
+
+    public Long checkInternalAvailableMemory() {
+        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
+        long blockSize = stat.getBlockSizeLong();
+        long availableBlocks = stat.getAvailableBlocksLong();
+
+        return blockSize * availableBlocks;
+    }
+
+    public Long checkExternalStorageAllMemory() {
+        Long size = 0L;
+        if (isExternalMemoryAvailable()) {
+            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
+            long blockSize = stat.getBlockSizeLong();
+            long totalBlocks = stat.getBlockCountLong();
+
+            size = totalBlocks * blockSize;
+        }
+        return size;
+    }
+
+    public Long checkExternalAvailableMemory() {
+        Long size = 0L;
+        if (isExternalMemoryAvailable()) {
+            File file = Environment.getExternalStorageDirectory();
+            StatFs stat = new StatFs(file.getPath());
+            long blockSize = stat.getBlockSizeLong();
+            long availableBlocks = stat.getAvailableBlocksLong();
+            size = availableBlocks * blockSize;
+        }
+        return size;
+    }
+
+    public String getFileSize(long size) {
+        if (size <= 0)
+            return "0";
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 }

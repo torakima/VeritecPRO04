@@ -9,7 +9,7 @@ public class ItemObject  extends RealmObject {
     @PrimaryKey
     private int GroupNo;
     private String GroupName;
-
+    private String sortFIle;
 
     private RealmList<GroupItemObject> groupItemObjects;
 
@@ -27,6 +27,14 @@ public class ItemObject  extends RealmObject {
 
     public void setGroupName(String groupName) {
         GroupName = groupName;
+    }
+
+    public String getSortFIle() {
+        return sortFIle;
+    }
+
+    public void setSortFIle(String sortFIle) {
+        this.sortFIle = sortFIle;
     }
 
     public RealmList<GroupItemObject> getGroupItemObjects() {

@@ -73,6 +73,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     Spinner groupSpinner;
     final Context context = this;
     private int SettingResultCode = 00001;
+    private int saveGroupSpinnerCount = 0;
 
 
     @Override
@@ -87,7 +88,13 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         settingBtn = (ImageButton) findViewById(R.id.imageButton3);
         settingBtn.setOnClickListener(this);
         groupSpinner = (Spinner) findViewById(R.id.spinner);
-        realmManager.DataCheck();
+        if (!realmManager.DataCheck()) {
+            isFirst = true;
+            setExtRoot();
+        } else {
+            setExtRoot();
+        }
+
         setView();
     }
 
@@ -142,7 +149,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         //リスト項目長押しリスナー
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 lItem = (ListItem) parent.getItemAtPosition(position);
                 final String name = lItem.getName();
                 final String path = lItem.getImagePath();
@@ -176,6 +183,11 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                         //削除
                         if (id == DELETE) {
 //                            dbHelper.delete(Integer.parseInt(name));
+                            ListItem item = listAdapter2.getItem(position);
+                            deleteItem(item.getItemNo());
+                            fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
+                            fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
+                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
                             drawList(spinnerPs);
                         }
                         dialog.dismiss();
@@ -204,8 +216,6 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                     public void onDismiss(ListView listView, int[] reverseSortedPositions) {
 
                         for (int position : reverseSortedPositions) {
-
-
                             ListItem item = listAdapter2.getItem(position);
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
@@ -229,9 +239,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
      * リスト項目更新メソッド
      */
     private void drawList(String group) {
-
         ListAdapter listAdapter = new ListAdapter();
-        Object test = groupSpinner.getSelectedItem();
         RealmList<GroupItemObject> list = getItems(groupSpinner.getSelectedItem().toString());
         for (GroupItemObject obj : list) {
             Drawable reDraPic = actItem.resizing(obj.getImagePath());
@@ -295,7 +303,10 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
                 break;
             case R.id.imageButton3:
-                startActivityForResult(new Intent(this, SettingActivity.class), SettingResultCode);
+                saveGroupSpinnerCount = groupSpinner.getSelectedItemPosition();
+                Intent intent = new Intent(this, SettingActivity.class);
+                intent.putExtra("position", groupSpinner.getSelectedItemPosition());
+                startActivityForResult(intent, SettingResultCode);
                 break;
             default:
                 break;
@@ -396,7 +407,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arr);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSpinner.setAdapter(adapter);
-
+            groupSpinner.setSelection(saveGroupSpinnerCount);
             drawList(spinnerPs);
 
         }
