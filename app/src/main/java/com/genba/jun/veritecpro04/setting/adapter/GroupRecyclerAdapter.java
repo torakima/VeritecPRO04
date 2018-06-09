@@ -1,5 +1,6 @@
 package com.genba.jun.veritecpro04.setting.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -7,6 +8,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -16,7 +18,9 @@ import com.genba.jun.veritecpro04.data.ActItem;
 import com.genba.jun.veritecpro04.data.ItemObject;
 import com.genba.jun.veritecpro04.data.RealmManager;
 import com.genba.jun.veritecpro04.util.FileUtil;
+import com.genba.jun.veritecpro04.util.KeyboardUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import io.realm.RealmResults;
@@ -28,14 +32,18 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
     private OnRecyclerListener mListener;
     RealmManager realmManager = null;
     ArrayList<String> msgArray = new ArrayList<>();
-    public String rootDir = "/Genba";
+    private String rootDir = "/Genba";
+    private String extPath;
+    private Activity activity;
 
 
-    public GroupRecyclerAdapter(Context context, OnRecyclerListener listener, RealmManager realmManager) {
+    public GroupRecyclerAdapter(Activity activity, Context context, OnRecyclerListener listener, RealmManager realmManager, String extPath) {
         mInflater = LayoutInflater.from(context);
         mContext = context;
 //        mData = data;
         mListener = listener;
+        this.activity = activity;
+        this.extPath = extPath;
         this.realmManager = realmManager;
         mData = realmManager.getGroupListResult();
         for (int i = 0; i < mData.size(); i++) {
@@ -88,11 +96,10 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
         viewHolder.textBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                String extPath = ActItem.getSdCardFilesDirPathListForLollipop(mContext);
-                String extPath = FileUtil.getExternalStoragePath(mContext);
-                new FileUtil().renameFolder(extPath + rootDir + "/" + item.getGroupName(), extPath + rootDir + "/" + msgArray.get(index));
+                new FileUtil().renameFolder(extPath + rootDir + File.separator + item.getGroupName(), extPath + rootDir + File.separator + msgArray.get(index));
                 realmManager.updateImagePath(item.getGroupName(), msgArray.get(index));
                 viewHolder.textBtn.setVisibility(View.GONE);
+                KeyboardUtils.hideKeyboard(activity);
             }
         });
 
@@ -122,4 +129,5 @@ public class GroupRecyclerAdapter extends RecyclerView.Adapter<GroupRecyclerAdap
         void onRecyclerClicked(View v, int position);
 
     }
+
 }

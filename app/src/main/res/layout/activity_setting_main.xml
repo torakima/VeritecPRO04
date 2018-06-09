@@ -92,7 +92,15 @@
                     card_view:cardBackgroundColor="@color/white"
                     card_view:cardCornerRadius="10dp">
 
+                    <ProgressBar
+                        android:id="@+id/progress_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+
                     <LinearLayout
+                        android:id="@+id/save_parent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"

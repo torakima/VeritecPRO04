@@ -199,11 +199,8 @@ public class SambaActivity extends Activity {
     }
 
     public void showProgress() {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(this);
-            progressDialog.setCancelable(false);
-        }
-
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
         progressDialog.setMessage("データ送信中");
         progressDialog.show();
     }
@@ -213,6 +210,8 @@ public class SambaActivity extends Activity {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
+        progressDialog = null;
+        uploadedCount = 0;
     }
 
     public void showDialog(String msg, Boolean error) {

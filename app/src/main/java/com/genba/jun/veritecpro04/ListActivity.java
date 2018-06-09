@@ -154,6 +154,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                 final String name = lItem.getName();
                 final String path = lItem.getImagePath();
                 final String text = lItem.getContents();
+                final String itemNo = lItem.getItemNo();
 
                 //ポップアップ項目
                 final CharSequence[] items = {"写真撮影", "テキスト編集", "削除"};
@@ -165,8 +166,14 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
 
                         //再撮影
                         if (id == EDIT_PIC) {
-                            Intent intentSht = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            startActivityForResult(intentSht, actItem.ADD_PIC_FROM_SHOOTING_OLD);
+                            Intent intent = new Intent(ListActivity.this, EditActivity.class);
+                            intent.putExtra("flg", actItem.FLG_EDIT_PIC);
+                            intent.putExtra("text", text);
+                            intent.putExtra("savePath", path);
+                            intent.putExtra("pk", name);
+                            intent.putExtra("groupName", spinnerPs);
+                            intent.putExtra("itemNo", itemNo);
+                            startActivity(intent);
                         }
 
                         //コメント修正
@@ -177,6 +184,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             intent.putExtra("savePath", path);
                             intent.putExtra("pk", name);
                             intent.putExtra("groupName", spinnerPs);
+                            intent.putExtra("itemNo", itemNo);
                             startActivity(intent);
                         }
 
@@ -220,7 +228,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
                             fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
-                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
+                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + sortTxt, item.getImageName()); //テキストファイル
                         }
                         drawList(spinnerPs);
                     }
@@ -263,11 +271,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                 intentAlb.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 startActivityForResult(intentAlb, actItem.ADD_PIC_FROM_ALBUM);
                 break;
-
-
             case R.id.pins:
-
-
                 if (isExistsCameraApplication()) {
                     long dateTaken = System.currentTimeMillis();
                     //String filename = DateFormat.format("yyyy", dateTaken).toString() + ".jpg";

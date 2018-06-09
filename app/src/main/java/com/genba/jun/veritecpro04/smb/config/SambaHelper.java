@@ -127,11 +127,11 @@ public class SambaHelper {
             Log.d(TAG, "config=" + config + "createFolder      URL=" + mURL + " parent=" + parent + " name=" + name);
         }
         SmbFile remoteFile = new SmbFile(mURL);
-        if (!remoteFile.exists()) {
-            remoteFile.mkdir();
-            return true;
+        if (remoteFile.exists()) {
+            delete(config, parent + name + File.separator);
         }
-        return false;
+        remoteFile.mkdir();
+        return true;
     }
 
 

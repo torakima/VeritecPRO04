@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.text.format.DateFormat;
@@ -36,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import io.realm.RealmList;
+
 public class EditActivity extends BaseActivity {
 
     private SharedPreferences sp;
@@ -58,7 +61,8 @@ public class EditActivity extends BaseActivity {
     String text;
     String pk;
     String itemNo;
-
+    private static final long MIN_CLICK_INTERVAL = 600;
+    private long mLastClickTime;
 
     private boolean imageChange = false;
     GroupItemObject itemObj;
@@ -69,6 +73,7 @@ public class EditActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 //        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
+        setExtRoot();
 
         //ID紐づけ
         uriView = findViewById(R.id.uriView);
@@ -85,18 +90,22 @@ public class EditActivity extends BaseActivity {
         group = data.getExtras().getString("group");
         GroupName = data.getExtras().getString("groupName");
 
-        setExtRoot();
 
         if (flg == actItem.FLG_EDIT) {
-            GroupName = data.getExtras().getString("groupName");
             itemNo = data.getExtras().getString("itemNo");
             itemObj = getItem(GroupName, itemNo);
             text = data.getExtras().getString("text");
             pk = data.getExtras().getString("pk");
-            //uriView.setText(data.getExtras().getString("savePath"));
             accTxt.setText(text);
         }
-
+        if (flg == actItem.FLG_EDIT_PIC) {
+            itemNo = data.getExtras().getString("itemNo");
+            itemObj = getItem(GroupName, itemNo);
+            text = data.getExtras().getString("text");
+            pk = data.getExtras().getString("pk");
+            accTxt.setText(text);
+            rePicture();
+        }
         topText.setText(GroupName);
         //日付は現在日付に固定・現在時間取得
         Long now = System.currentTimeMillis();
@@ -113,29 +122,7 @@ public class EditActivity extends BaseActivity {
         findViewById(R.id.reShoot).setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                long dateTaken = System.currentTimeMillis();
-                String filename = DateFormat.format("yyyy-MM-dd_kk.mm.ss", dateTaken).toString() + ".jpg";
-
-                ContentResolver contentResolver = getContentResolver();
-                ContentValues values = new ContentValues(5);
-                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000);
-                values.put(MediaStore.Images.Media.TITLE, filename);
-                values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
-                values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-                Uri pictureUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-                if (sp == null) sp = getPreferences(MODE_PRIVATE);
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putString("pictureUri", pictureUri.toString());
-                editor.commit();
-
-
-                Intent intent = new Intent();
-                intent.setAction("android.media.action.IMAGE_CAPTURE");
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, pictureUri);
-
-                startActivityForResult(intent, actItem.ADD_PIC_FROM_SHOOTING_TEST);
+                rePicture();
             }
         });
 
@@ -159,10 +146,19 @@ public class EditActivity extends BaseActivity {
         findViewById(R.id.dbadd).setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
+                long currentClickTime = SystemClock.uptimeMillis();
+                long elapsedTime = currentClickTime - mLastClickTime;
+                mLastClickTime = currentClickTime;
+
+                // 중복 클릭인 경우
+                if (elapsedTime <= MIN_CLICK_INTERVAL) {
+                    return;
+                }
+                setProgressDialog();
                 Date currentDate = new Date();
                 SimpleDateFormat df = new SimpleDateFormat("yy.MM.dd", Locale.JAPAN);
                 String formattedDate = df.format(currentDate);
-                if (flg == actItem.FLG_EDIT) {
+                if (flg == actItem.FLG_EDIT || flg == actItem.FLG_EDIT_PIC) {
 
                     //更新処理
                     GroupItemObject newUpdateItem = new GroupItemObject();
@@ -177,6 +173,7 @@ public class EditActivity extends BaseActivity {
 
                         Uri uri = Uri.parse(picPath);
                         imageFile = new File(uri.getPath());
+                        newUpdateItem.setOriginImageName(imageFile.getName());
                         String newImagePath = targetRoot + imageFile.getName();
                         fileUtil.copyFile(imageFile, newImagePath);
                         imageFile = new File(targetRoot, imageFile.getName());
@@ -200,6 +197,7 @@ public class EditActivity extends BaseActivity {
                         newUpdateItem.setImageName(itemObj.getImageName());
                         newUpdateItem.setTextPath(itemObj.getTextPath());
                     }
+
                     newUpdateItem.setTime(itemObj.getTime());
                     newUpdateItem.setGroupNo(itemObj.getGroupNo());
                     newUpdateItem.setItemNo(itemObj.getItemNo());
@@ -211,12 +209,21 @@ public class EditActivity extends BaseActivity {
                 } else {
                     //新規作成
                     //イメージファイルをコピー
+                    GroupItemObject obj = new GroupItemObject();
                     Uri uri = Uri.parse(picPath);
                     File imageFile = new File(uri.getPath());
+                    for (GroupItemObject item : getItems(GroupName)) {
+                        if (imageFile.getName().equals(item.getOriginImageName())) {
+                            Toast.makeText(getApplicationContext(), "登録されたイメージです。他のイメージを選択してください。", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+
                     String path = extPath + rootDir + "/" + GroupName + "/";
                     String targetRoot = path + imageFile.getName();
                     fileUtil.copyFile(imageFile, targetRoot);
                     imageFile = new File(path, imageFile.getName());
+                    obj.setOriginImageName(imageFile.getName());
                     imageFile.renameTo(new File(path, formattedDate + imageFile.getName()));
                     imageFile = new File(path, formattedDate + imageFile.getName());
                     //テキストファイル作成
@@ -227,12 +234,12 @@ public class EditActivity extends BaseActivity {
                     if (sortFile != null) {
                         fileUtil.writeSortFile(sortFile, imageFile.getName());
                     }
+//                    Toast.makeText(getApplicationContext(), fileUtil.ReadFileText(sortFile), Toast.LENGTH_LONG).show();
                     File textFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + "/" + "" + textFileName + ".txt");
                     if (textFile != null) {
                         fileUtil.writeFile(textFile, accTxt.getText().toString().getBytes());
                     }
 
-                    GroupItemObject obj = new GroupItemObject();
                     obj.setTime(time);
                     obj.setItemNo(GroupName + "_sub_" + getItemSize(GroupName));
                     obj.setGroupName(GroupName);
@@ -242,10 +249,37 @@ public class EditActivity extends BaseActivity {
                     obj.setTextPath(textFile.getPath());
                     obj.setTextContent(accTxt.getText().toString());
                     setItem(GroupName, obj);
+                    dismissProgressDialog();
                     finish();
                 }
             }
         });
+    }
+
+    private void rePicture() {
+        long dateTaken = System.currentTimeMillis();
+        String filename = DateFormat.format("yyyy-MM-dd_kk.mm.ss", dateTaken).toString() + ".jpg";
+
+        ContentResolver contentResolver = getContentResolver();
+        ContentValues values = new ContentValues(5);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000);
+        values.put(MediaStore.Images.Media.TITLE, filename);
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        Uri pictureUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        if (sp == null) sp = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("pictureUri", pictureUri.toString());
+        editor.commit();
+
+
+        Intent intent = new Intent();
+        intent.setAction("android.media.action.IMAGE_CAPTURE");
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, pictureUri);
+
+        startActivityForResult(intent, actItem.ADD_PIC_FROM_SHOOTING_TEST);
     }
 
 
@@ -257,19 +291,15 @@ public class EditActivity extends BaseActivity {
         Bitmap bitmap = null;
         try {
             exif = new ExifInterface(imgPath);
-
             int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-
             bitmap = decodeSampledBitmapFromFile(imgPath, 700, 700);
-            bitmap = rotateBitmap(bitmap, orientation);
+            Bitmap rotateBitmap = rotateBitmap(bitmap, orientation);
+            if (rotateBitmap != null)
+                bitmap = rotateBitmap;
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "写真時報を取得できませんでした。", Toast.LENGTH_SHORT).show();
-            finish();
         } catch (RuntimeException e) {
             e.printStackTrace();
-            Toast.makeText(this, "写真時報を取得できませんでした。", Toast.LENGTH_SHORT).show();
-            finish();
         }
         picView.setImageBitmap(bitmap);
     }

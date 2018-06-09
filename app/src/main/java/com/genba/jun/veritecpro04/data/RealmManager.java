@@ -27,6 +27,7 @@ public class RealmManager {
 
     public void RealmInitilize() {
         mRealm = Realm.getDefaultInstance();
+
     }
 
     public void CloseReam() {

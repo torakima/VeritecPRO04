@@ -113,18 +113,23 @@
             android:orientation="horizontal"
             android:weightSum="2">
 
-            <android.support.v4.widget.NestedScrollView
+            <!--<android.support.v4.widget.NestedScrollView-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_weight="1">-->
+
+            <!--<RadioGroup-->
+            <!--android:id="@+id/group_list"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content">-->
+
+            <!--</RadioGroup>-->
+            <!--</android.support.v4.widget.NestedScrollView>-->
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/group_list"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1">
-
-                <RadioGroup
-                    android:id="@+id/group_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                </RadioGroup>
-            </android.support.v4.widget.NestedScrollView>
+                android:layout_weight="1"/>
 
             <View
                 android:layout_width="2dp"

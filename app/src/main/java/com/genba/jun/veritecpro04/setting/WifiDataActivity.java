@@ -2,6 +2,7 @@ package com.genba.jun.veritecpro04.setting;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,11 +25,14 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.genba.jun.veritecpro04.BaseActivity;
 import com.genba.jun.veritecpro04.R;
+import com.genba.jun.veritecpro04.adapter.OnRecyclerListener;
 import com.genba.jun.veritecpro04.data.GroupItemObject;
 import com.genba.jun.veritecpro04.data.ItemObject;
 import com.genba.jun.veritecpro04.data.RealmManager;
@@ -45,11 +49,9 @@ import java.util.ArrayList;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
-public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigListener, View.OnClickListener {
+public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigListener, View.OnClickListener, OnRecyclerListener {
 
 
-    // RecyclerViewとAdapter
-    private RadioGroup mGroup = null;
     private RealmResults<ItemObject> mData;
     private LayoutInflater inflater;
     private ListView folerListView;
@@ -64,12 +66,18 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     public String extPath;
     public String rootDir = "/Genba";
     int groupPosiotion = 0;
+    private Boolean isConnect = false;
+    // RecyclerViewとAdapter
+    private RecyclerView mGroup = null;
+    private RecyclerAdapter mAdapter = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_trans_main);
-        mGroup = (RadioGroup) findViewById(R.id.group_list);
+        mGroup = (RecyclerView) findViewById(R.id.group_list);
+        // レイアウトマネージャを設定(ここで縦方向の標準リストであることを指定)
+        mGroup.setLayoutManager(new LinearLayoutManager(this));
         inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) groupPosiotion = getIntent().getExtras().getInt("position");
@@ -103,26 +111,13 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.send_btn:
+                isConnect = false;
                 if (folderName == null) {
                     showDialog("グループを選択してください。", false);
                     return;
                 }
                 createFolder(folderName);
-                RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
-                if (uploadList.size() == 0) {
-                    showDialog("データがありません", false);
-                    return;
-                }
-                ArrayList<String> itemsPath = new ArrayList<>();
-                for (GroupItemObject item : uploadList) {
-                    itemsPath.add(item.getImagePath());
-                    itemsPath.add(item.getTextPath());
-                }
-                startDialog(itemsPath.size());
-                for (String item : itemsPath) {
-                    upload(item, folderName);
-                }
-                upload(extPath + rootDir + "/" + folderName + "/sort.txt", folderName);
+
                 break;
             case R.id.connect_btn:
                 String ipAdd = ipView.getText().toString();
@@ -151,34 +146,39 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         }
     }
 
+
     private void setGroupList() {
         mData = realmManager.getGroupListResult();
-        for (int i = 0; i < mData.size(); i++) {
-            RadioButton rad = (RadioButton) inflater.inflate(R.layout.group_radio, null);
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            layoutParams.gravity = Gravity.CENTER_VERTICAL;
-            rad.setText(mData.get(i).getGroupName());
+        mAdapter = new RecyclerAdapter(this, mData, this, groupPosiotion);
+        mGroup.setAdapter(mAdapter);
 
-            mGroup.addView(rad);
-            mGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                public void onCheckedChanged(RadioGroup group, int checkedId) {
-                    RadioButton checkedRadioButton = (RadioButton) group.findViewById(checkedId);
-                    boolean isChecked = checkedRadioButton.isChecked();
-                    if (isChecked) {
-                        folderName = checkedRadioButton.getText().toString();
-                    }
-                }
-            });
-            if (groupPosiotion == i) {
-                rad.setChecked(true);
-            }
-        }
+//        for (int i = 0; i < mData.size(); i++) {
+//            RadioButton rad = (RadioButton) inflater.inflate(R.layout.group_radio, null);
+//            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//            layoutParams.gravity = Gravity.CENTER_VERTICAL;
+//            rad.setText(mData.get(i).getGroupName());
+//
+//            mGroup.addView(rad);
+//            mGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+//                public void onCheckedChanged(RadioGroup group, int checkedId) {
+//                    RadioButton checkedRadioButton = (RadioButton) group.findViewById(checkedId);
+//                    boolean isChecked = checkedRadioButton.isChecked();
+//                    if (isChecked) {
+//                        folderName = checkedRadioButton.getText().toString();
+//                    }
+//                }
+//            });
+//            if (groupPosiotion == i) {
+//                rad.setChecked(true);
+//            }
+//        }
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
     }
 
     private void initFolderListView(final String path) {
@@ -305,16 +305,34 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                 builder.append(ACTION_STR);
                 builder.append("\n");
                 builder.append(msg);
-                if (action.equals("ERROR")) {
+                if (action.equals("createFolder")) {
+                    RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+                    if (uploadList.size() == 0) {
+                        showDialog("データがありません", false);
+                        return;
+                    }
+                    ArrayList<String> itemsPath = new ArrayList<>();
+                    for (GroupItemObject item : uploadList) {
+                        itemsPath.add(item.getImagePath());
+                        itemsPath.add(item.getTextPath());
+                    }
+                    startDialog(itemsPath.size());
+                    for (String item : itemsPath) {
+                        upload(item, folderName);
+                    }
+                    upload(extPath + rootDir + "/" + folderName + "/sort.txt", folderName);
+
+                } else if (action.equals("ERROR")) {
                     if (!msg.contains("NullPointerException") && !msg.contains(" path specified")) {
                         showDialog(msg, true);
                     }
-                    if (msg.contains("SmbException")) {
+                    if (msg.contains("SmbAuthException")) {
                         connectBtn.setEnabled(true);
                         clearBtn.setEnabled(true);
                         sendBtn.setEnabled(false);
                     }
                 }
+
                 Log.d(TAG, "updateResult    " + builder);
             }
         });
@@ -387,4 +405,105 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         }
 
     }
+
+    @Override
+    public void onRecyclerClicked(View v, String name) {
+        folderName = name;
+    }
+
+    public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
+
+        private LayoutInflater mInflater;
+        private RealmResults<ItemObject> items;
+        private Context mContext;
+        private OnRecyclerListener mListener;
+        private int lastSelectedPosition = -1;
+        private int groupPosiotion;
+        private Boolean firstCheck = true;
+
+        public RecyclerAdapter(Context context, RealmResults<ItemObject> item, OnRecyclerListener listener, int groupPosiotion) {
+            mInflater = LayoutInflater.from(context);
+            mContext = context;
+            items = item;
+            mListener = listener;
+            this.groupPosiotion = groupPosiotion;
+        }
+
+        @Override
+        public RecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+            // 表示するレイアウトを設定
+            return new ViewHolder(mInflater.inflate(R.layout.group_item, viewGroup, false));
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder viewHolder, final int i) {
+            // データ表示
+            if (mData != null && mData.size() > i && mData.get(i) != null) {
+                viewHolder.radioButton.setText(mData.get(i).getGroupName());
+                viewHolder.savedUrl.setText(mData.get(i).getDataTrasUrl());
+                if (mData.get(i).getDataTrasUrl() != null) {
+                    viewHolder.button.setVisibility(View.VISIBLE);
+                    viewHolder.savedUrl.setVisibility(View.VISIBLE);
+                } else {
+                    viewHolder.button.setVisibility(View.GONE);
+                    viewHolder.savedUrl.setVisibility(View.GONE);
+                }
+                if (firstCheck) {
+                    if (groupPosiotion == i) {
+                        viewHolder.radioButton.setChecked(true);
+                        firstCheck = false;
+                    }
+                } else {
+                    viewHolder.radioButton.setChecked(lastSelectedPosition == i);
+                }
+
+            }
+
+            // クリック処理
+//            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    mListener.onRecyclerClicked(v, i);
+//                }
+//            });
+
+        }
+
+        @Override
+        public int getItemCount() {
+            if (mData != null) {
+                return mData.size();
+            } else {
+                return 0;
+            }
+        }
+
+        // ViewHolder(固有ならインナークラスでOK)
+        class ViewHolder extends RecyclerView.ViewHolder {
+
+            RadioButton radioButton;
+            RelativeLayout layout;
+            TextView savedUrl;
+            Button button;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                radioButton = (RadioButton) itemView.findViewById(R.id.groupName);
+                layout = (RelativeLayout) itemView.findViewById(R.id.layout);
+                savedUrl = (TextView) itemView.findViewById(R.id.saved_url);
+                button = (Button) itemView.findViewById(R.id.send_btn);
+                layout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        lastSelectedPosition = getAdapterPosition();
+                        notifyDataSetChanged();
+                        mListener.onRecyclerClicked(v, items.get(lastSelectedPosition).getGroupName());
+                    }
+                });
+            }
+        }
+
+    }
+
+
 }

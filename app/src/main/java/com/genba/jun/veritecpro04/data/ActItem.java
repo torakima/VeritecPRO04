@@ -35,6 +35,7 @@ public class ActItem {
     public static int VOICE_RECOGNITION = 50;
 
     public static final int FLG_EDIT = 929;
+    public static final int FLG_EDIT_PIC = 930;
 
     BitmapFactory.Options options = new BitmapFactory.Options();
 

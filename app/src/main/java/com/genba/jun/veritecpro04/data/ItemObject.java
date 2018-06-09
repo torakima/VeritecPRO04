@@ -10,6 +10,8 @@ public class ItemObject  extends RealmObject {
     private int GroupNo;
     private String GroupName;
     private String sortFIle;
+    private String dataTrasUrl;
+    private String dataOriginTrasUrl;
 
     private RealmList<GroupItemObject> groupItemObjects;
 
@@ -43,5 +45,21 @@ public class ItemObject  extends RealmObject {
 
     public void setGroupItemObjects(RealmList<GroupItemObject> groupItemObjects) {
         this.groupItemObjects = groupItemObjects;
+    }
+
+    public String getDataTrasUrl() {
+        return dataTrasUrl;
+    }
+
+    public void setDataTrasUrl(String dataTrasUrl) {
+        this.dataTrasUrl = dataTrasUrl;
+    }
+
+    public String getDataOriginTrasUrl() {
+        return dataOriginTrasUrl;
+    }
+
+    public void setDataOriginTrasUrl(String dataOriginTrasUrl) {
+        this.dataOriginTrasUrl = dataOriginTrasUrl;
     }
 }

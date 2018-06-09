@@ -18,10 +18,10 @@ public class VeritecApplication extends Application {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
         Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .name("dataItem.realm")
-                .build();
-        Realm.getInstance(config);
+//        RealmConfiguration config = new RealmConfiguration.Builder()
+//                .name("dataItem.realm")
+//                .build();
+//        Realm.getInstance(config);
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)
                         .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))

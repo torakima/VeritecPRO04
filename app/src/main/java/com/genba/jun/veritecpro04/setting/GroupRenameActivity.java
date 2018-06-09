@@ -24,12 +24,13 @@ public class GroupRenameActivity extends BaseActivity implements GroupRecyclerAd
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_rename_main);
+        setExtRoot();
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
         realmManager = new RealmManager();
         realmManager.RealmInitilize();
-        mAdapter = new GroupRecyclerAdapter(this, this, realmManager);
+        mAdapter = new GroupRecyclerAdapter(this, this, this, realmManager, extPath);
         mRecyclerView.setAdapter(mAdapter);
     }
 

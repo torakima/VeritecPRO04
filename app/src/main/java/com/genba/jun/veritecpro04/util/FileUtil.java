@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.os.storage.StorageManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -340,14 +342,13 @@ public class FileUtil {
             //Read from the original file and write to the new
             //unless content matches data to be removed.
             while ((line = br.readLine()) != null) {
-                if (!line.trim().contains(lineToRemove)) {
-                    pw.println(line);
+                if (!line.trim().isEmpty() || !line.trim().contains(lineToRemove)) {
+                    pw.write(line);
                     pw.flush();
                 }
             }
             pw.close();
             br.close();
-
             //Delete the original file
             if (!inFile.delete()) {
                 System.out.println("Could not delete file");
@@ -355,8 +356,9 @@ public class FileUtil {
             }
 
             //Rename the new file to the filename the original file had.
-            if (!tempFile.renameTo(inFile))
+            if (!tempFile.renameTo(inFile)) {
                 System.out.println("Could not rename file");
+            }
 
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
@@ -365,6 +367,23 @@ public class FileUtil {
         }
     }
 
+    private static void deleteLine(File targetFile) throws IOException {
+        RandomAccessFile file = new RandomAccessFile(targetFile, "rw");
+        String delete;
+        String task = "";
+        byte[] tasking;
+        while ((delete = file.readLine()) != null) {
+            if (delete.startsWith("BAD")) {
+                continue;
+            }
+            task += delete + "\n";
+        }
+        System.out.println(task);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
+        writer.write(task);
+        file.close();
+        writer.close();
+    }
 
     public String ReadFileText(File file) {
         String strText = "";
@@ -464,7 +483,7 @@ public class FileUtil {
             fileNow.mkdir();
             File[] childFileList = filePre.listFiles();
             for (File childFile : childFileList) {
-                new File(oldPath + "/" + childFile.getName()).renameTo(new File(newPath + "/" + childFile.getName()));
+                new File(oldPath + File.separator  + childFile.getName()).renameTo(new File(newPath + File.separator + childFile.getName()));
                 childFile.delete();
             }
             filePre.delete();
