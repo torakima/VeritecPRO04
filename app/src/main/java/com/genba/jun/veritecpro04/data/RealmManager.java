@@ -5,6 +5,7 @@ import android.content.Context;
 import com.genba.jun.veritecpro04.smb.config.IConfig;
 import com.genba.jun.veritecpro04.util.FileUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -129,6 +130,16 @@ public class RealmManager {
             }
         });
     }
+
+    public Boolean setTrasFolder(String groupName, String folderName) {
+        ItemObject itemObject = mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst();
+        String saveFolderName = folderName.replace("/", "").replace(">", "").trim();
+        mRealm.beginTransaction();
+        itemObject.setDataTrasUrl(saveFolderName);
+        mRealm.commitTransaction();
+        return true;
+    }
+
 
     public void updateImagePath(String oldGroupName, String newGroupName) {
         if (mRealm == null) RealmInitilize();

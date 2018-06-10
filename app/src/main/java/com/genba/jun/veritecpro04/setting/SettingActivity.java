@@ -75,6 +75,12 @@ public class SettingActivity extends BaseActivity {
         });
         saveText = findViewById(R.id.save_folder);
         saveFolderView = findViewById(R.id.save_folder_change);
+        saveFolderView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDialog();
+            }
+        });
         isSaveDirection = getSetting().isSaveDirection();
         if (!isSaveDirection) saveText.setText("現在保存先：本体");
         else saveText.setText("現在保存先：SD CARD");
@@ -150,7 +156,7 @@ public class SettingActivity extends BaseActivity {
         else defaultItem = 0;
         final String[] items = {"SD CARD", "本体"};
         // Init ArrayAdapter with OpenPGP Providers
-        ListAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice, items) {
+        ListAdapter adapter = new ArrayAdapter<String>(this, R.layout.checked_layout, items) {
             public View getView(int position, View convertView, ViewGroup parent) {
                 // User super class to create the View
                 View v = super.getView(position, convertView, parent);

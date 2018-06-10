@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">PM Prototype</string>
-
+    <string name="save_folder">保存先 フォルダー名 &#160; - &#160; </string>
 </resources>

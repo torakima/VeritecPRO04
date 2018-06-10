@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.genba.jun.veritecpro04.data.RealmManager;
 import com.genba.jun.veritecpro04.smb.config.IConfig;
 import com.genba.jun.veritecpro04.smb.config.SambaHelper;
 import com.genba.jun.veritecpro04.smb.config.SambaUtil;
@@ -41,16 +42,16 @@ public class SambaActivity extends Activity {
     protected String curRemoteFolder;
     protected String curRemoteFile;
     protected ArrayList<String> customRoot = new ArrayList<>();
-
+    public RealmManager realmManager = new RealmManager();
     protected int totalUploadCount = 0;
     protected int uploadedCount = 0;
     private ProgressDialog progressDialog;
-    AlertDialog.Builder dialogBuilder;
-
+    private AlertDialog.Builder dialogBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        realmManager.RealmInitilize();
         mConfig = new DefaultConfig();
         try {
             EMPTY_REMOTE_FILE = new SmbFile("");
@@ -153,6 +154,7 @@ public class SambaActivity extends Activity {
         if (totalUploadCount <= uploadedCount) {
             hideProgress();
             listAndPrepare(customRoot.get(customRoot.size() - 1));
+            updateResult("upLoadComplete","upLoadComplete" );
         }
     }
 

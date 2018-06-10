@@ -60,7 +60,6 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     private Boolean isRoot = true;
     private String backFolder = "BACK_FOLDER";
     private String folderName;
-    public RealmManager realmManager = new RealmManager();
     private Button connectBtn, clearBtn, sendBtn;
     private EditText ipView, userView, passwordView;
     public String extPath;
@@ -82,7 +81,6 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) groupPosiotion = getIntent().getExtras().getInt("position");
         folerListView = (ListView) findViewById(R.id.folder_list);
-        realmManager.RealmInitilize();
         setGroupList();
         init();
     }
@@ -149,36 +147,16 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
 
     private void setGroupList() {
         mData = realmManager.getGroupListResult();
+        folderName = mData.get(groupPosiotion).getGroupName();
         mAdapter = new RecyclerAdapter(this, mData, this, groupPosiotion);
         mGroup.setAdapter(mAdapter);
-
-//        for (int i = 0; i < mData.size(); i++) {
-//            RadioButton rad = (RadioButton) inflater.inflate(R.layout.group_radio, null);
-//            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//            layoutParams.gravity = Gravity.CENTER_VERTICAL;
-//            rad.setText(mData.get(i).getGroupName());
-//
-//            mGroup.addView(rad);
-//            mGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-//                public void onCheckedChanged(RadioGroup group, int checkedId) {
-//                    RadioButton checkedRadioButton = (RadioButton) group.findViewById(checkedId);
-//                    boolean isChecked = checkedRadioButton.isChecked();
-//                    if (isChecked) {
-//                        folderName = checkedRadioButton.getText().toString();
-//                    }
-//                }
-//            });
-//            if (groupPosiotion == i) {
-//                rad.setChecked(true);
-//            }
-//        }
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        mConfig = null;
     }
 
     private void initFolderListView(final String path) {
@@ -193,9 +171,6 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-//                            if (folderAdapter != null) {
-//                                folderAdapter.clear();
-//                            }
                             folderAdapter.setFolderList(new ArrayList(REMOTE_PATHS.keySet()));
                             folerListView.setAdapter(folderAdapter);
                             folerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -332,7 +307,11 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                         sendBtn.setEnabled(false);
                     }
                 }
-
+                if (action.equals("upLoadComplete")) {
+                    if (realmManager.setTrasFolder(folderName, customRoot.get(customRoot.size() - 1))) {
+                        setGroupList();
+                    }
+                }
                 Log.d(TAG, "updateResult    " + builder);
             }
         });
@@ -440,14 +419,13 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
             // データ表示
             if (mData != null && mData.size() > i && mData.get(i) != null) {
                 viewHolder.radioButton.setText(mData.get(i).getGroupName());
-                viewHolder.savedUrl.setText(mData.get(i).getDataTrasUrl());
                 if (mData.get(i).getDataTrasUrl() != null) {
-                    viewHolder.button.setVisibility(View.VISIBLE);
-                    viewHolder.savedUrl.setVisibility(View.VISIBLE);
+                    String saveFolder = getString(R.string.save_folder) + mData.get(i).getDataTrasUrl();
+                    viewHolder.saved_folder.setText(saveFolder);
                 } else {
-                    viewHolder.button.setVisibility(View.GONE);
-                    viewHolder.savedUrl.setVisibility(View.GONE);
+                    viewHolder.saved_folder.setText("");
                 }
+
                 if (firstCheck) {
                     if (groupPosiotion == i) {
                         viewHolder.radioButton.setChecked(true);
@@ -483,14 +461,14 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
 
             RadioButton radioButton;
             RelativeLayout layout;
-            TextView savedUrl;
+            TextView saved_folder;
             Button button;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 radioButton = (RadioButton) itemView.findViewById(R.id.groupName);
                 layout = (RelativeLayout) itemView.findViewById(R.id.layout);
-                savedUrl = (TextView) itemView.findViewById(R.id.saved_url);
+                saved_folder = (TextView) itemView.findViewById(R.id.saved_folder);
                 button = (Button) itemView.findViewById(R.id.send_btn);
                 layout.setOnClickListener(new View.OnClickListener() {
                     @Override
