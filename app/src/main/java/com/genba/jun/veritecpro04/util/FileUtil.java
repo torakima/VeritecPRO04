@@ -159,7 +159,9 @@ public class FileUtil {
         File file;
         boolean isSuccess = false;
         file = new File(file_path);
-        if (!file.exists()) {
+        if (file.exists()) {
+            deleteFile(file);
+        }
             Log.i(TAG, "!file.exists");
             try {
                 isSuccess = file.createNewFile();
@@ -168,9 +170,7 @@ public class FileUtil {
             } finally {
                 Log.i(TAG, "result= " + isSuccess);
             }
-        } else {
-            Log.i(TAG, "file.exists");
-        }
+
         return file;
     }
 
@@ -274,14 +274,8 @@ public class FileUtil {
         boolean result;
         byte[] writeFIle;
         FileWriter writer = null;
-        boolean isSeporator = false;
-        String sortContent = ReadFileText(file);
-        if (!sortContent.isEmpty()) {
-            isSeporator = true;
-        }
         try {
             writer = new FileWriter(file, true);
-            if (isSeporator) writer.write(System.lineSeparator());
             writer.write(file_content);
             writer.flush();
             writer.close();

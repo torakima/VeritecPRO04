@@ -26,7 +26,7 @@ public class BaseActivity extends AppCompatActivity {
     public RealmManager realmManager = new RealmManager();
     public String extPath;
     public String rootDir = "/Genba";
-    public String sortTxt = "/sort.txt";
+//    public String sortTxt = "/sort.txt";
     public Boolean isFirst = false;
     FileUtil fileUtil;
     ProgressDialog progressDialog;

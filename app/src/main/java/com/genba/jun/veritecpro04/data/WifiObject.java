@@ -6,7 +6,6 @@ import io.realm.annotations.PrimaryKey;
 
 public class WifiObject extends RealmObject {
 
-    @PrimaryKey
     private String ipAddress;
     private String user;
     private String password;

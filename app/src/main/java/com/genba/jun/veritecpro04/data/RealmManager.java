@@ -176,16 +176,23 @@ public class RealmManager {
     }
 
     public void setWifiUser(final IConfig userInfo) {
-        final WifiObject obj = new WifiObject();
-        obj.setUser(userInfo.user);
-        obj.setPassword(userInfo.password);
-        obj.setIpAddress(userInfo.host);
-        mRealm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                mRealm.copyToRealmOrUpdate(obj);
-            }
-        });
+        WifiObject obj = mRealm.where(WifiObject.class).findFirst();
+        if (obj == null) {
+            mRealm.beginTransaction();
+            WifiObject newIObj = mRealm.createObject(WifiObject.class);
+            newIObj.setUser(userInfo.user);
+            newIObj.setPassword(userInfo.password);
+            newIObj.setIpAddress(userInfo.host);
+            mRealm.commitTransaction();
+        } else {
+            mRealm.beginTransaction();
+            obj.setUser(userInfo.user);
+            obj.setPassword(userInfo.password);
+            obj.setIpAddress(userInfo.host);
+            mRealm.commitTransaction();
+        }
+
+
     }
 
     public SettingObject getSetting() {

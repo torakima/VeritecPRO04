@@ -103,7 +103,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         //データ取得してスピナーにセット
         ArrayList<String> groupArray = getGroupList();
         String[] arr = groupArray.toArray(new String[groupArray.size()]);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arr);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinneritem, arr);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         groupSpinner.setAdapter(adapter);
 
@@ -111,7 +111,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
+//                ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
 
                 spinnerPs = parent.getItemAtPosition(position).toString();
                 Log.i("TEST:", "Spinner Selected : " + spinnerPs);
@@ -195,7 +195,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
                             fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
-                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
+//                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
                             drawList(spinnerPs);
                         }
                         dialog.dismiss();
@@ -228,7 +228,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
                             fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
-                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + sortTxt, item.getImageName()); //テキストファイル
+//                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + sortTxt, item.getImageName()); //テキストファイル
                         }
                         drawList(spinnerPs);
                     }
@@ -408,7 +408,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
             }
             ArrayList<String> groupArray = getGroupList();
             String[] arr = groupArray.toArray(new String[groupArray.size()]);
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arr);
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinneritem, arr);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSpinner.setAdapter(adapter);
             groupSpinner.setSelection(saveGroupSpinnerCount);

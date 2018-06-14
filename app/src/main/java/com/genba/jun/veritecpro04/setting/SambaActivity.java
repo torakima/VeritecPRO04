@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,6 +23,7 @@ import com.genba.jun.veritecpro04.smb.config.SambaHelper;
 import com.genba.jun.veritecpro04.smb.config.SambaUtil;
 import com.genba.jun.veritecpro04.smb.jcifs.smb.SmbAuthException;
 import com.genba.jun.veritecpro04.smb.jcifs.smb.SmbFile;
+import com.genba.jun.veritecpro04.util.FileUtil;
 
 /**
  * Created by ram on 15/1/20.
@@ -41,12 +43,13 @@ public class SambaActivity extends Activity {
     protected Map<String, SmbFile> REMOTE_PATHS = new LinkedHashMap<>();
     protected String curRemoteFolder;
     protected String curRemoteFile;
-    protected ArrayList<String> customRoot = new ArrayList<>();
+    public ArrayList<String> customRoot = new ArrayList<>();
     public RealmManager realmManager = new RealmManager();
     protected int totalUploadCount = 0;
     protected int uploadedCount = 0;
     private ProgressDialog progressDialog;
     private AlertDialog.Builder dialogBuilder;
+    FileUtil fileUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +130,7 @@ public class SambaActivity extends Activity {
     }
 
 
-    protected final void upload(final String path, final String targetFolder) {
+    protected final void upload(final String path, final String targetFolder, final Boolean isSortText) {
         new Thread() {
             @Override
             public void run() {
@@ -139,6 +142,8 @@ public class SambaActivity extends Activity {
                     handleException(e);
                 }
                 updateResult("upload", path + " " + String.valueOf(result).toUpperCase());
+                if (isSortText) fileUtil.deleteFile(new File(path));
+
                 onUploadResult(curRemoteFolder, result);
             }
         }.start();///folder
@@ -154,7 +159,7 @@ public class SambaActivity extends Activity {
         if (totalUploadCount <= uploadedCount) {
             hideProgress();
             listAndPrepare(customRoot.get(customRoot.size() - 1));
-            updateResult("upLoadComplete","upLoadComplete" );
+            updateResult("upLoadComplete", "upLoadComplete");
         }
     }
 

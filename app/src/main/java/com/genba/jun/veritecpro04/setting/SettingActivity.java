@@ -9,17 +9,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.genba.jun.veritecpro04.BaseActivity;
@@ -90,13 +83,12 @@ public class SettingActivity extends BaseActivity {
 
     private void setSdcardFolder() {
         backEnable = false;
-
+        setProgressDialog();
+        progress_bar.setVisibility(View.VISIBLE);
+        save_parent.setVisibility(View.GONE);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                progress_bar.setVisibility(View.VISIBLE);
-                save_parent.setVisibility(View.GONE);
-                setProgressDialog();
                 oldRoot = extPath;
                 setChangeRoot(!isSaveDirection);
                 setSetting(!isSaveDirection);
@@ -129,14 +121,14 @@ public class SettingActivity extends BaseActivity {
                         newUpdateItem.setOriginImageName(item.getOriginImageName());
                         updateItem(newUpdateItem);
                     }
-                    String old = oldRoot + rootDir + "/" + group.getGroupName() + sortTxt;
-                    fileUtil.copyFile(new File(oldRoot + rootDir + "/" + group.getGroupName() + sortTxt), root + "/" + group.getGroupName() + sortTxt);
+//                    String old = oldRoot + rootDir + "/" + group.getGroupName() + sortTxt;
+//                    fileUtil.copyFile(new File(oldRoot + rootDir + "/" + group.getGroupName() + sortTxt), root + "/" + group.getGroupName() + sortTxt);
                     progress_bar.setVisibility(View.GONE);
                     save_parent.setVisibility(View.VISIBLE);
-                    dismissProgressDialog();
                 }
             }
         });
+        dismissProgressDialog();
 
 
         isSaveDirection = getSetting().isSaveDirection();

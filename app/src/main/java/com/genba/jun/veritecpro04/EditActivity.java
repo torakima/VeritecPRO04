@@ -16,11 +16,13 @@ import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.text.format.DateFormat;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +52,8 @@ public class EditActivity extends BaseActivity {
     TextView uriView = null;
     ImageView picView = null;
 
+    ScrollView scrollView = null;
+
     String group = null;
     String picPath = null;
 
@@ -72,6 +76,8 @@ public class EditActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+
 //        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "PhotoLib.db", null, 1);
         setExtRoot();
 
@@ -79,6 +85,17 @@ public class EditActivity extends BaseActivity {
         uriView = findViewById(R.id.uriView);
         picView = findViewById(R.id.imgPreView);
         accTxt = findViewById(R.id.accTxt);
+        scrollView = findViewById(R.id.edit_scroll);
+//        scrollView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (accTxt.hasFocus()) {
+//                    accTxt.clearFocus();
+//                }
+//                return false;
+//            }
+//        });
+
         TextView topText = (TextView) findViewById(R.id.uriView);
 
         //intent処理
@@ -97,6 +114,7 @@ public class EditActivity extends BaseActivity {
             text = data.getExtras().getString("text");
             pk = data.getExtras().getString("pk");
             accTxt.setText(text);
+            setScrollViewBottom();
         }
         if (flg == actItem.FLG_EDIT_PIC) {
             itemNo = data.getExtras().getString("itemNo");
@@ -130,6 +148,7 @@ public class EditActivity extends BaseActivity {
         //ボタン処理‐音声入力
         findViewById(R.id.voice).setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
+                setScrollViewBottom();
                 speech();
             }
         });
@@ -150,7 +169,6 @@ public class EditActivity extends BaseActivity {
                 long elapsedTime = currentClickTime - mLastClickTime;
                 mLastClickTime = currentClickTime;
 
-                // 중복 클릭인 경우
                 if (elapsedTime <= MIN_CLICK_INTERVAL) {
                     return;
                 }
@@ -229,11 +247,11 @@ public class EditActivity extends BaseActivity {
                     //テキストファイル作成
                     int idx = imageFile.getName().lastIndexOf(".");
                     String textFileName = imageFile.getName().substring(0, idx);
-                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + sortTxt);
+//                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + sortTxt);
 
-                    if (sortFile != null) {
-                        fileUtil.writeSortFile(sortFile, imageFile.getName());
-                    }
+//                    if (sortFile != null) {
+//                        fileUtil.writeSortFile(sortFile, imageFile.getName());
+//                    }
 //                    Toast.makeText(getApplicationContext(), fileUtil.ReadFileText(sortFile), Toast.LENGTH_LONG).show();
                     File textFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + "/" + "" + textFileName + ".txt");
                     if (textFile != null) {
@@ -455,10 +473,8 @@ public class EditActivity extends BaseActivity {
 
 
     public static void insertText(EditText view, String text) {
-        // Math.max 는 에초에 커서가 잡혀있지않을때를 대비해서 넣음.
         int s = Math.max(view.getSelectionStart(), 0);
         int e = Math.max(view.getSelectionEnd(), 0);
-        // 역으로 선택된 경우 s가 e보다 클 수 있다 때문에 이렇게 Math.min Math.max를 쓴다.
         view.getText().replace(Math.min(s, e), Math.max(s, e), text, 0, text.length());
     }
 
@@ -469,6 +485,15 @@ public class EditActivity extends BaseActivity {
         cursor.close();
 
         return path;
+    }
+
+    private void setScrollViewBottom() {
+        scrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollView.fullScroll(View.FOCUS_DOWN);
+            }
+        });
     }
 
 }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,6 +34,7 @@ import android.widget.Toast;
 import com.genba.jun.veritecpro04.BaseActivity;
 import com.genba.jun.veritecpro04.R;
 import com.genba.jun.veritecpro04.adapter.OnRecyclerListener;
+import com.genba.jun.veritecpro04.data.ActItem;
 import com.genba.jun.veritecpro04.data.GroupItemObject;
 import com.genba.jun.veritecpro04.data.ItemObject;
 import com.genba.jun.veritecpro04.data.RealmManager;
@@ -44,6 +46,7 @@ import com.genba.jun.veritecpro04.smb.config.SambaUtil;
 import com.genba.jun.veritecpro04.smb.jcifs.smb.SmbFile;
 import com.genba.jun.veritecpro04.util.FileUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import io.realm.RealmList;
@@ -69,11 +72,16 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     // RecyclerViewとAdapter
     private RecyclerView mGroup = null;
     private RecyclerAdapter mAdapter = null;
+    public String sortTxt = "/sort.txt";
+    private long mLastClickTime;
+    private static final long MIN_CLICK_INTERVAL = 600;
+    File sortFile = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_trans_main);
+        fileUtil = new FileUtil();
         mGroup = (RecyclerView) findViewById(R.id.group_list);
         // レイアウトマネージャを設定(ここで縦方向の標準リストであることを指定)
         mGroup.setLayoutManager(new LinearLayoutManager(this));
@@ -86,8 +94,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     }
 
     private void init() {
-        extPath = FileUtil.getExternalStoragePath(this);
-
+        setExtRoot();
         WifiObject userInfo = realmManager.getWifiUser();
         sendBtn = (Button) findViewById(R.id.send_btn);
         connectBtn = (Button) findViewById(R.id.connect_btn);
@@ -105,8 +112,22 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         }
     }
 
+    public void setExtRoot() {
+        if (realmManager.getSetting().isSaveDirection()) {
+            extPath = ActItem.getSdCardFilesDirPathListForLollipop(this);
+        } else {
+            extPath = FileUtil.getExternalStoragePath(this);
+        }
+    }
     @Override
     public void onClick(View view) {
+        long currentClickTime = SystemClock.uptimeMillis();
+        long elapsedTime = currentClickTime - mLastClickTime;
+        mLastClickTime = currentClickTime;
+
+        if (elapsedTime <= MIN_CLICK_INTERVAL) {
+            return;
+        }
         switch (view.getId()) {
             case R.id.send_btn:
                 isConnect = false;
@@ -114,10 +135,21 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     showDialog("グループを選択してください。", false);
                     return;
                 }
+                RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+                StringBuilder sort = new StringBuilder();
+                for (GroupItemObject obj : uploadList) {
+                    sort.append(obj.getImageName());
+                    sort.append(System.lineSeparator());
+                }
+                sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
+
+//                    if (sortFile != null) {
+                fileUtil.writeSortFile(sortFile, sort.toString());
                 createFolder(folderName);
 
                 break;
             case R.id.connect_btn:
+
                 String ipAdd = ipView.getText().toString();
                 String userName = userView.getText().toString();
                 String password = passwordView.getText().toString();
@@ -133,6 +165,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     showDialog("passwordを入力してください", true);
                     return;
                 }
+                customRoot = new ArrayList<>();
                 mConfig = new IConfig(ipAdd, userName, password, "");
                 listRoot();
                 break;
@@ -162,6 +195,9 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     private void initFolderListView(final String path) {
         if (!sendBtn.isEnabled()) {
             sendBtn.setEnabled(true);
+        }
+        if (folderAdapter != null) {
+            folderAdapter.clear();
         }
         folderAdapter = new FolderAdapter(this);
         new Thread(new Runnable() {
@@ -252,8 +288,8 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         super.listRoot();
         isRoot = true;
         realmManager.setWifiUser(mConfig);
-        connectBtn.setEnabled(false);
-        clearBtn.setEnabled(false);
+//        connectBtn.setEnabled(false);
+//        clearBtn.setEnabled(false);
         initFolderListView(curRemoteFolder);
     }
 
@@ -293,18 +329,18 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     }
                     startDialog(itemsPath.size());
                     for (String item : itemsPath) {
-                        upload(item, folderName);
+                        upload(item, folderName, false);
                     }
-                    upload(extPath + rootDir + "/" + folderName + "/sort.txt", folderName);
+                    upload(extPath + rootDir + File.separator + folderName + sortTxt, folderName, true);
 
                 } else if (action.equals("ERROR")) {
                     if (!msg.contains("NullPointerException") && !msg.contains(" path specified")) {
                         showDialog(msg, true);
                     }
                     if (msg.contains("SmbAuthException")) {
-                        connectBtn.setEnabled(true);
-                        clearBtn.setEnabled(true);
-                        sendBtn.setEnabled(false);
+//                        connectBtn.setEnabled(true);
+//                        clearBtn.setEnabled(true);
+//                        sendBtn.setEnabled(false);
                     }
                 }
                 if (action.equals("upLoadComplete")) {
