@@ -167,6 +167,8 @@ public class EditActivity extends BaseActivity {
             public void onClick(View v) {
                 long currentClickTime = SystemClock.uptimeMillis();
                 long elapsedTime = currentClickTime - mLastClickTime;
+                RealmList<GroupItemObject> groupList = getItems(GroupName);
+
                 mLastClickTime = currentClickTime;
 
                 if (elapsedTime <= MIN_CLICK_INTERVAL) {
@@ -177,17 +179,15 @@ public class EditActivity extends BaseActivity {
                 SimpleDateFormat df = new SimpleDateFormat("yy.MM.dd", Locale.JAPAN);
                 String formattedDate = df.format(currentDate);
                 if (flg == actItem.FLG_EDIT || flg == actItem.FLG_EDIT_PIC) {
-
+                    String txtPath;
                     //更新処理
                     GroupItemObject newUpdateItem = new GroupItemObject();
                     if (imageChange) {
                         //既存ファイル削除
-                        File imageFile;
-
                         Uri deleteImageUri = Uri.parse(itemObj.getImagePath());
-                        imageFile = new File(deleteImageUri.getPath());
+                        File imageFile = new File(deleteImageUri.getPath());
                         fileUtil.deleteFile(imageFile);
-                        String targetRoot = extPath + rootDir + "/" + GroupName + "/";
+                        String targetRoot = extPath + rootDir + File.separator + GroupName + File.separator;
 
                         Uri uri = Uri.parse(picPath);
                         imageFile = new File(uri.getPath());
@@ -202,26 +202,36 @@ public class EditActivity extends BaseActivity {
                         int idx = imageFile.getName().lastIndexOf(".");
                         String textFileName = imageFile.getName().substring(0, idx);
                         String newTextPath = targetRoot + textFileName + ".txt";
+
+//                        ArrayList<String> imageTxts = new ArrayList<>();
+//                        for (GroupItemObject item : groupList) {
+//                            imageTxts.add(item.getImageName());
+//                            File textFile = new File(item.getTextPath());
+//                            imageTxts.add(textFile.getName());
+//                        }
+//                        fileUtil.clearFiles(extPath+rootDir+File.separator + GroupName,imageTxts );
                         if (itemObj.getTextPath() != null) {
                             new File(itemObj.getTextPath()).renameTo(new File(newTextPath));
-                            new File(itemObj.getTextPath()).delete(); //既存ファイル削除
+                            File oldText= new File(itemObj.getTextPath());
+                            fileUtil.deleteFile(oldText); //既存ファイル削除
                         }
+                        txtPath  = newTextPath;
                         newUpdateItem.setImageName(imageFile.getName());
                         newUpdateItem.setImagePath(imageFile.getPath());
                         newUpdateItem.setImageSize(imageFile.length());
                         newUpdateItem.setTextPath(newTextPath);
                     } else {
+                        txtPath  = itemObj.getTextPath();
                         newUpdateItem.setImagePath(itemObj.getImagePath());
                         newUpdateItem.setImageName(itemObj.getImageName());
                         newUpdateItem.setTextPath(itemObj.getTextPath());
                     }
-
+                    newUpdateItem.setGroupName(GroupName);
                     newUpdateItem.setTime(itemObj.getTime());
                     newUpdateItem.setGroupNo(itemObj.getGroupNo());
                     newUpdateItem.setItemNo(itemObj.getItemNo());
                     newUpdateItem.setTextContent(accTxt.getText().toString());
-                    fileUtil.UpdateFile(itemObj.getTextPath(), accTxt.getText().toString());
-
+                    fileUtil.UpdateFile(txtPath, accTxt.getText().toString());
                     updateItem(newUpdateItem);
                     finish();
                 } else {
@@ -230,14 +240,15 @@ public class EditActivity extends BaseActivity {
                     GroupItemObject obj = new GroupItemObject();
                     Uri uri = Uri.parse(picPath);
                     File imageFile = new File(uri.getPath());
-                    for (GroupItemObject item : getItems(GroupName)) {
+                    for (GroupItemObject item : groupList) {
                         if (imageFile.getName().equals(item.getOriginImageName())) {
+                            dismissProgressDialog();
                             Toast.makeText(getApplicationContext(), "登録されたイメージです。他のイメージを選択してください。", Toast.LENGTH_LONG).show();
                             return;
                         }
                     }
 
-                    String path = extPath + rootDir + "/" + GroupName + "/";
+                    String path = extPath + rootDir + File.separator + GroupName + File.separator;
                     String targetRoot = path + imageFile.getName();
                     fileUtil.copyFile(imageFile, targetRoot);
                     imageFile = new File(path, imageFile.getName());
@@ -247,6 +258,7 @@ public class EditActivity extends BaseActivity {
                     //テキストファイル作成
                     int idx = imageFile.getName().lastIndexOf(".");
                     String textFileName = imageFile.getName().substring(0, idx);
+
 //                    File sortFile = fileUtil.makeFile(extPath + rootDir + "/" + GroupName + sortTxt);
 
 //                    if (sortFile != null) {

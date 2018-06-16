@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -28,7 +29,7 @@ import com.genba.jun.veritecpro04.util.FileUtil;
 /**
  * Created by ram on 15/1/20.
  */
-public class SambaActivity extends Activity {
+public class SambaActivity extends AppCompatActivity {
 
     protected final static String TAG = SambaHelper.TAG;
     protected final static String LOCAL_FOLDER_PATH = "/test/samba";

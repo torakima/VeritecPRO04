@@ -25,6 +25,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 public class FileUtil {
     private String TAG = "FileUtil";
@@ -155,6 +156,21 @@ public class FileUtil {
         return file;
     }
 
+    /**
+     * file clear
+     */
+    public void clearFiles(String path, ArrayList<String> files) {
+        File dir = new File(path);
+        File[] childFileList = dir.listFiles();
+        for (File childFile : childFileList) {
+            Boolean isFile = false;
+            for (String file : files) {
+                if (childFile.getName().equals(file)) isFile = true;
+            }
+            if (!isFile) childFile.delete();
+        }
+    }
+
     public File makeFile(String file_path) {
         File file;
         boolean isSuccess = false;
@@ -162,14 +178,14 @@ public class FileUtil {
         if (file.exists()) {
             deleteFile(file);
         }
-            Log.i(TAG, "!file.exists");
-            try {
-                isSuccess = file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                Log.i(TAG, "result= " + isSuccess);
-            }
+        Log.i(TAG, "!file.exists");
+        try {
+            isSuccess = file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            Log.i(TAG, "result= " + isSuccess);
+        }
 
         return file;
     }
@@ -181,7 +197,7 @@ public class FileUtil {
      */
     public boolean deleteFile(File file) {
         boolean result;
-        if (file != null && file.exists()) {
+        if (file.exists()) {
             file.delete();
             result = true;
         } else {
@@ -477,7 +493,7 @@ public class FileUtil {
             fileNow.mkdir();
             File[] childFileList = filePre.listFiles();
             for (File childFile : childFileList) {
-                new File(oldPath + File.separator  + childFile.getName()).renameTo(new File(newPath + File.separator + childFile.getName()));
+                new File(oldPath + File.separator + childFile.getName()).renameTo(new File(newPath + File.separator + childFile.getName()));
                 childFile.delete();
             }
             filePre.delete();

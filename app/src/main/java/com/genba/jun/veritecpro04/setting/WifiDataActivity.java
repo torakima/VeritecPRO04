@@ -149,7 +149,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
 
                 break;
             case R.id.connect_btn:
-
+                connectBtn.setEnabled(false);
                 String ipAdd = ipView.getText().toString();
                 String userName = userView.getText().toString();
                 String password = passwordView.getText().toString();
@@ -207,6 +207,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            connectBtn.setEnabled(true);
                             folderAdapter.setFolderList(new ArrayList(REMOTE_PATHS.keySet()));
                             folerListView.setAdapter(folderAdapter);
                             folerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -316,6 +317,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                 builder.append(ACTION_STR);
                 builder.append("\n");
                 builder.append(msg);
+                connectBtn.setEnabled(true);
                 if (action.equals("createFolder")) {
                     RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
                     if (uploadList.size() == 0) {
