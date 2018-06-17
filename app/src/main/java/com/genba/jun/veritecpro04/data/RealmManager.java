@@ -131,11 +131,12 @@ public class RealmManager {
         });
     }
 
-    public Boolean setTrasFolder(String groupName, String folderName) {
+    public Boolean setTrasFolder(String groupName, String folderName, String oroginRemotePath) {
         ItemObject itemObject = mRealm.where(ItemObject.class).equalTo("GroupName", groupName).findFirst();
         String saveFolderName = folderName.replace("/", "").replace(">", "").trim();
         mRealm.beginTransaction();
         itemObject.setDataTrasUrl(saveFolderName);
+        itemObject.setDataOriginTrasUrl(oroginRemotePath);
         mRealm.commitTransaction();
         return true;
     }

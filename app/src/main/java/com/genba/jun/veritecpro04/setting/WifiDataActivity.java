@@ -135,17 +135,18 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     showDialog("グループを選択してください。", false);
                     return;
                 }
-                RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
-                StringBuilder sort = new StringBuilder();
-                for (GroupItemObject obj : uploadList) {
-                    sort.append(obj.getImageName());
-                    sort.append(System.lineSeparator());
-                }
-                sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
-
-//                    if (sortFile != null) {
-                fileUtil.writeSortFile(sortFile, sort.toString());
-                createFolder(folderName);
+                sendData();
+//                RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+//                StringBuilder sort = new StringBuilder();
+//                for (GroupItemObject obj : uploadList) {
+//                    sort.append(obj.getImageName());
+//                    sort.append(System.lineSeparator());
+//                }
+//                sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
+//
+////                    if (sortFile != null) {
+//                fileUtil.writeSortFile(sortFile, sort.toString());
+//                createFolder(folderName);
 
                 break;
             case R.id.connect_btn:
@@ -177,6 +178,19 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         }
     }
 
+    private void sendData(){
+        RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+        StringBuilder sort = new StringBuilder();
+        for (GroupItemObject obj : uploadList) {
+            sort.append(obj.getImageName());
+            sort.append(System.lineSeparator());
+        }
+        sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
+
+//                    if (sortFile != null) {
+        fileUtil.writeSortFile(sortFile, sort.toString());
+        createFolder(folderName);
+    }
 
     private void setGroupList() {
         mData = realmManager.getGroupListResult();
@@ -346,7 +360,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     }
                 }
                 if (action.equals("upLoadComplete")) {
-                    if (realmManager.setTrasFolder(folderName, customRoot.get(customRoot.size() - 1))) {
+                    if (realmManager.setTrasFolder(folderName, customRoot.get(customRoot.size() - 1), curRemoteFolder)) {
                         setGroupList();
                     }
                 }
@@ -472,16 +486,17 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                 } else {
                     viewHolder.radioButton.setChecked(lastSelectedPosition == i);
                 }
-
+                if(mData.get(i).getDataOriginTrasUrl()!=null) viewHolder.button.setVisibility(View.VISIBLE);
+                else viewHolder.button.setVisibility(View.GONE);
+                viewHolder.button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        sendData();
+                    }
+                });
             }
 
             // クリック処理
-//            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    mListener.onRecyclerClicked(v, i);
-//                }
-//            });
 
         }
 

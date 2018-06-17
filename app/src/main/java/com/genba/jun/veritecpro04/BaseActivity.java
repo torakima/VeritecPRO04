@@ -26,7 +26,7 @@ public class BaseActivity extends AppCompatActivity {
     public RealmManager realmManager = new RealmManager();
     public String extPath;
     public String rootDir = "/Genba";
-//    public String sortTxt = "/sort.txt";
+    public String sortTxt = "/sort.txt";
     public Boolean isFirst = false;
     FileUtil fileUtil;
     ProgressDialog progressDialog;
@@ -121,6 +121,19 @@ public class BaseActivity extends AppCompatActivity {
             finish();
         }
     };
+
+        public void createSortFile(String folderName){
+            RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+            StringBuilder sort = new StringBuilder();
+            for (GroupItemObject obj : uploadList) {
+                sort.append(obj.getImageName());
+                sort.append(System.lineSeparator());
+            }
+            fileUtil.deleteFile(new File(extPath + rootDir + File.separator + folderName + sortTxt));
+            File sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
+//                    if (sortFile != null) {
+            fileUtil.writeSortFile(sortFile, sort.toString());
+        }
 
 
     public void setProgressDialog() {
