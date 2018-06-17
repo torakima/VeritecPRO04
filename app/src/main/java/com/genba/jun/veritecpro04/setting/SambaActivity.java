@@ -51,6 +51,8 @@ public class SambaActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private AlertDialog.Builder dialogBuilder;
     FileUtil fileUtil;
+    protected boolean isMemory = false;
+    protected String tempCurRemoteFolder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,10 +158,21 @@ public class SambaActivity extends AppCompatActivity {
 
     protected void onUploadResult(String path, boolean result) {
         //TODO by child
-        uploadedCount += 1;
-        if (totalUploadCount <= uploadedCount) {
+        uploadedCount = uploadedCount + 1;
+        Log.d("sdFasfasdfads", uploadedCount + "");
+        if (totalUploadCount == uploadedCount) {
             hideProgress();
-            listAndPrepare(customRoot.get(customRoot.size() - 1));
+            if (!isMemory) {
+                try {
+                    listAndPrepare(customRoot.get(customRoot.size() - 1));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                isMemory = false;
+                curRemoteFolder = tempCurRemoteFolder;
+            }
+
             updateResult("upLoadComplete", "upLoadComplete");
         }
     }
@@ -190,9 +203,10 @@ public class SambaActivity extends AppCompatActivity {
 
 
     public void startDialog(int count) {
-        totalUploadCount = count;
+        totalUploadCount = count + 1;
         showProgress();
     }
+
 
     /**
      * MalformedURLException
@@ -207,6 +221,9 @@ public class SambaActivity extends AppCompatActivity {
     }
 
     public void showProgress() {
+        if (progressDialog != null) {
+            progressDialog = null;
+        }
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("データ送信中");

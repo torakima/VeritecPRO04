@@ -1,7 +1,6 @@
 package com.genba.jun.veritecpro04.setting;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -80,7 +79,6 @@ public class SettingActivity extends BaseActivity {
     }
 
 
-
     private void setSdcardFolder() {
         backEnable = false;
         setProgressDialog();
@@ -121,8 +119,9 @@ public class SettingActivity extends BaseActivity {
                         newUpdateItem.setOriginImageName(item.getOriginImageName());
                         updateItem(newUpdateItem);
                     }
-//                    String old = oldRoot + rootDir + "/" + group.getGroupName() + sortTxt;
-//                    fileUtil.copyFile(new File(oldRoot + rootDir + "/" + group.getGroupName() + sortTxt), root + "/" + group.getGroupName() + sortTxt);
+                    createSortFile(group.getGroupName());
+//                    String old = oldRoot + rootDir + File.separator + group.getGroupName() + sortTxt;
+//                    fileUtil.copyFile(new File(oldRoot + rootDir + File.separator + group.getGroupName() + sortTxt), root + File.separator + group.getGroupName() + sortTxt);
                     progress_bar.setVisibility(View.GONE);
                     save_parent.setVisibility(View.VISIBLE);
                 }
@@ -197,7 +196,6 @@ public class SettingActivity extends BaseActivity {
         if (backEnable)
             super.onBackPressed();
     }
-
 
 
     @Override

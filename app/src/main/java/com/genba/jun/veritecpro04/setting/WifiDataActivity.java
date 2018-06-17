@@ -119,6 +119,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
             extPath = FileUtil.getExternalStoragePath(this);
         }
     }
+
     @Override
     public void onClick(View view) {
         long currentClickTime = SystemClock.uptimeMillis();
@@ -135,7 +136,12 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     showDialog("グループを選択してください。", false);
                     return;
                 }
-                sendData();
+                if (customRoot.size() <= 1) {
+                    showDialog("rootフォルダーです。", false);
+                    return;
+                }
+
+                sendData(false, null);
 //                RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
 //                StringBuilder sort = new StringBuilder();
 //                for (GroupItemObject obj : uploadList) {
@@ -178,7 +184,11 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         }
     }
 
-    private void sendData(){
+    private void sendData(boolean isMemoryClick, String isremoteFolder) {
+        if (curRemoteFolder == null) {
+            showDialog("check login", true);
+            return;
+        }
         RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
         StringBuilder sort = new StringBuilder();
         for (GroupItemObject obj : uploadList) {
@@ -189,7 +199,12 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
 
 //                    if (sortFile != null) {
         fileUtil.writeSortFile(sortFile, sort.toString());
-        createFolder(folderName);
+        if (isMemoryClick) {
+            isMemory = true;
+            createFolder(folderName);
+            tempCurRemoteFolder = curRemoteFolder;
+            curRemoteFolder = isremoteFolder;
+        } else createFolder(folderName);
     }
 
     private void setGroupList() {
@@ -360,9 +375,14 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     }
                 }
                 if (action.equals("upLoadComplete")) {
-                    if (realmManager.setTrasFolder(folderName, customRoot.get(customRoot.size() - 1), curRemoteFolder)) {
-                        setGroupList();
+                    try {
+                        if (realmManager.setTrasFolder(folderName, customRoot.get(customRoot.size() - 1), curRemoteFolder)) {
+                            setGroupList();
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        e.printStackTrace();
                     }
+
                 }
                 Log.d(TAG, "updateResult    " + builder);
             }
@@ -438,7 +458,7 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
     }
 
     @Override
-    public void onRecyclerClicked(View v, String name) {
+    public void onRecyclerClicked(View v, String name, int lastSelectedPosition) {
         folderName = name;
     }
 
@@ -481,19 +501,21 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                 if (firstCheck) {
                     if (groupPosiotion == i) {
                         viewHolder.radioButton.setChecked(true);
+                        viewHolder.button.setEnabled(true);
                         firstCheck = false;
                     }
                 } else {
                     viewHolder.radioButton.setChecked(lastSelectedPosition == i);
                 }
-                if(mData.get(i).getDataOriginTrasUrl()!=null) viewHolder.button.setVisibility(View.VISIBLE);
+                if (viewHolder.radioButton.isChecked()) {
+                    viewHolder.button.setEnabled(true);
+                } else {
+                    viewHolder.button.setEnabled(false);
+                }
+                if (mData.get(i).getDataOriginTrasUrl() != null)
+                    viewHolder.button.setVisibility(View.VISIBLE);
                 else viewHolder.button.setVisibility(View.GONE);
-                viewHolder.button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        sendData();
-                    }
-                });
+
             }
 
             // クリック処理
@@ -513,14 +535,14 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
         class ViewHolder extends RecyclerView.ViewHolder {
 
             RadioButton radioButton;
-            RelativeLayout layout;
+            LinearLayout layout;
             TextView saved_folder;
             Button button;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 radioButton = (RadioButton) itemView.findViewById(R.id.groupName);
-                layout = (RelativeLayout) itemView.findViewById(R.id.layout);
+                layout = (LinearLayout) itemView.findViewById(R.id.layout);
                 saved_folder = (TextView) itemView.findViewById(R.id.saved_folder);
                 button = (Button) itemView.findViewById(R.id.send_btn);
                 layout.setOnClickListener(new View.OnClickListener() {
@@ -528,7 +550,15 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     public void onClick(View v) {
                         lastSelectedPosition = getAdapterPosition();
                         notifyDataSetChanged();
-                        mListener.onRecyclerClicked(v, items.get(lastSelectedPosition).getGroupName());
+                        mListener.onRecyclerClicked(v, items.get(lastSelectedPosition).getGroupName(), lastSelectedPosition);
+                    }
+                });
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        lastSelectedPosition = getAdapterPosition();
+                        curRemoteFolder = mData.get(lastSelectedPosition).getDataOriginTrasUrl();
+                        sendData(true, mData.get(lastSelectedPosition).getDataOriginTrasUrl());
                     }
                 });
             }

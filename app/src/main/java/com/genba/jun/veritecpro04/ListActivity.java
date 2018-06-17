@@ -195,6 +195,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
                             fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
+                            createSortFile(spinnerPs);
 //                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + "/sort.txt", item.getImageName()); //テキストファイル
                             drawList(spinnerPs);
                         }
@@ -228,6 +229,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
                             deleteItem(item.getItemNo());
                             fileUtil.deleteFile(new File(Uri.parse(item.getImagePath()).getPath())); //イメージファイル削除
                             fileUtil.deleteFile(new File(Uri.parse(item.getTextPath()).getPath())); //テキストファイル削除
+                            createSortFile(spinnerPs);
 //                            fileUtil.removeLineFromFile(extPath + rootDir + "/" + spinnerPs + sortTxt, item.getImageName()); //テキストファイル
                         }
                         drawList(spinnerPs);

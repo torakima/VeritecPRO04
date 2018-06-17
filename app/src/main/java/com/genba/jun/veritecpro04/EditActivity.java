@@ -282,6 +282,7 @@ public class EditActivity extends BaseActivity {
                     dismissProgressDialog();
                     finish();
                 }
+                createSortFile(GroupName);
             }
         });
     }

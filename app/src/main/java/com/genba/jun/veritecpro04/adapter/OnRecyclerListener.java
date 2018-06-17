@@ -4,6 +4,6 @@ import android.view.View;
 
 public interface OnRecyclerListener {
 
-    void onRecyclerClicked(View v, String groupName);
+    void onRecyclerClicked(View v, String groupNamem, int lastSelectedPosition);
 
 }
