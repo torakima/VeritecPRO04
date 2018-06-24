@@ -107,33 +107,33 @@ public class BaseActivity extends AppCompatActivity {
         @Override
         public void onPermissionGranted() {
             if (!isFirst) return;
-            fileUtil.setDirEmpty(extPath + "/Genba"); // dir delete
+            fileUtil.setDirEmpty(extPath + rootDir); // dir delete
+            String localPath = FileUtil.getExternalStoragePath(BaseActivity.this);
+            fileUtil.setDirEmpty(localPath + rootDir); // root dir delete
             File root = fileUtil.makeDirectory(extPath + "/Genba");
             for (int a = 0; a < 10; a++) {
                 int index = a + 1;
                 fileUtil.makeDirectory(root + "/" + "GroupNo" + index);
             }
-
         }
-
         @Override
         public void onPermissionDenied(ArrayList<String> deniedPermissions) {
             finish();
         }
     };
 
-        public void createSortFile(String folderName){
-            RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
-            StringBuilder sort = new StringBuilder();
-            for (GroupItemObject obj : uploadList) {
-                sort.append(obj.getImageName());
-                sort.append(System.lineSeparator());
-            }
-            fileUtil.deleteFile(new File(extPath + rootDir + File.separator + folderName + sortTxt));
-            File sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
-//                    if (sortFile != null) {
-            fileUtil.writeSortFile(sortFile, sort.toString());
+    public void createSortFile(String folderName) {
+        RealmList<GroupItemObject> uploadList = realmManager.getGroup(folderName);
+        StringBuilder sort = new StringBuilder();
+        for (GroupItemObject obj : uploadList) {
+            sort.append(obj.getImageName());
+            sort.append(System.lineSeparator());
         }
+        fileUtil.deleteFile(new File(extPath + rootDir + File.separator + folderName + sortTxt));
+        File sortFile = fileUtil.makeFile(extPath + rootDir + File.separator + folderName + sortTxt);
+//                    if (sortFile != null) {
+        fileUtil.writeSortFile(sortFile, sort.toString());
+    }
 
 
     public void setProgressDialog() {

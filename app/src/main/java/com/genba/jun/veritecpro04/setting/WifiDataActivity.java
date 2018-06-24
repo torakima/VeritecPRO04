@@ -558,6 +558,15 @@ public class WifiDataActivity extends SambaActivity implements IConfig.OnConfigL
                     public void onClick(View v) {
                         lastSelectedPosition = getAdapterPosition();
                         curRemoteFolder = mData.get(lastSelectedPosition).getDataOriginTrasUrl();
+                        Boolean isDiretory = false;
+                        for (SmbFile value : REMOTE_PATHS.values()) {
+                            if (curRemoteFolder.equals(value.getCanonicalPath())) isDiretory = true;
+                        }
+                        if (!isDiretory) {
+                            showDialog("保存先のフォルダーがありません。", true);
+                            curRemoteFolder = tempCurRemoteFolder;
+                            return;
+                        }
                         sendData(true, mData.get(lastSelectedPosition).getDataOriginTrasUrl());
                     }
                 });

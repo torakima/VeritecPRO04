@@ -221,8 +221,8 @@ public class SambaActivity extends AppCompatActivity {
     }
 
     public void showProgress() {
-        if (progressDialog != null) {
-            progressDialog = null;
+        if (progressDialog != null && progressDialog.isShowing()) {
+            return;
         }
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
