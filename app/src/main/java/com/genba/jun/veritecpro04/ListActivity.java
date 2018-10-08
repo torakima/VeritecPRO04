@@ -241,6 +241,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         lv.setOnScrollListener(touchListener.makeScrollListener());
     }
 
+
     @Override
     protected void onResume() {
         drawList(spinnerPs);
