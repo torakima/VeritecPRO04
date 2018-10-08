@@ -242,6 +242,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
+
     @Override
     protected void onResume() {
         drawList(spinnerPs);
