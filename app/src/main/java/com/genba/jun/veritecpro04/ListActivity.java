@@ -210,6 +210,7 @@ public class ListActivity extends BaseActivity implements View.OnClickListener {
         });
 
 
+
         //リスト更新
         drawList(spinnerPs);
 
